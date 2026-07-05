@@ -33,6 +33,9 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("agentRemoteToken") ?? "");
   const [toolAccountId, setToolAccountId] = useState("");
   const [targetUrl, setTargetUrl] = useState("https://claude.ai");
+  const [regionCode, setRegionCode] = useState("US");
+  const [timezone, setTimezone] = useState("America/Los_Angeles");
+  const [locale, setLocale] = useState("en_US.UTF-8");
   const [ttlSeconds, setTtlSeconds] = useState(1800);
   const [sessions, setSessions] = useState<BrowserSession[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -90,6 +93,9 @@ function App() {
       const body = {
         tool_account_id: toolAccountId.trim() || null,
         target_url: targetUrl.trim() || null,
+        region_code: toolAccountId.trim() ? null : regionCode.trim(),
+        timezone: toolAccountId.trim() ? null : timezone.trim(),
+        locale: toolAccountId.trim() ? null : locale.trim(),
         ttl_seconds: ttlSeconds
       };
       const response = await request<ApiResponse<BrowserSession>>("/browser-sessions", {
@@ -177,6 +183,20 @@ function App() {
             URL
             <input value={targetUrl} onChange={(event) => setTargetUrl(event.target.value)} />
           </label>
+          <div className="compact-grid">
+            <label>
+              Region
+              <input value={regionCode} onChange={(event) => setRegionCode(event.target.value)} />
+            </label>
+            <label>
+              Timezone
+              <input value={timezone} onChange={(event) => setTimezone(event.target.value)} />
+            </label>
+            <label>
+              Locale
+              <input value={locale} onChange={(event) => setLocale(event.target.value)} />
+            </label>
+          </div>
           <label>
             TTL
             <input
