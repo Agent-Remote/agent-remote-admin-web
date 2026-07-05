@@ -124,6 +124,7 @@ function App() {
         ? response.data.embed_url
         : `${apiBase.replace(/\/$/, "")}${response.data.embed_url}`;
       setEmbedUrl(absoluteUrl);
+      window.open(absoluteUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to connect browser session.");
     } finally {
@@ -263,7 +264,11 @@ function App() {
 
         <div className="browser-frame">
           {embedUrl ? (
-            <iframe title="Remote browser" src={embedUrl} allow="clipboard-read; clipboard-write" />
+            <div className="empty-state">
+              <a href={embedUrl} target="_blank" rel="noreferrer">
+                Open remote browser
+              </a>
+            </div>
           ) : (
             <div className="empty-state">Select a ready browser session and connect.</div>
           )}
