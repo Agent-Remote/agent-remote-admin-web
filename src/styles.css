@@ -77,6 +77,20 @@ label {
   font-weight: 700;
 }
 
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  color: #25313d;
+}
+
+.check-line input {
+  width: 16px;
+  min-height: 16px;
+  padding: 0;
+}
+
 h1,
 h2 {
   margin: 0;

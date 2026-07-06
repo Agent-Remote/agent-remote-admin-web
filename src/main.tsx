@@ -105,6 +105,13 @@ type Workspace = {
   local_start_path: string;
   display_name: string;
   remote_path: string | null;
+  sync_git: boolean;
+  git_sync_policy: {
+    exclude_hooks: boolean;
+    exclude_locks: boolean;
+    require_clean_git_lock: boolean;
+    warn_concurrent_git: boolean;
+  };
   created_at: string;
   updated_at: string;
 };
@@ -119,6 +126,8 @@ type SyncSession = {
   status: string;
   conflict_status: string;
   sync_mode: string;
+  sync_git: boolean;
+  exclude: string[];
   mutagen_session_id: string | null;
   remote_endpoint: string | null;
   prepare_task_id: string | null;
@@ -1172,7 +1181,14 @@ function SyncPage({
           device_id: String(form.get("device_id") ?? ""),
           project_key: String(form.get("project_key") ?? ""),
           local_start_path: String(form.get("local_start_path") ?? ""),
-          display_name: String(form.get("display_name") ?? "")
+          display_name: String(form.get("display_name") ?? ""),
+          sync_git: form.get("sync_git") === "on",
+          git_sync_policy: {
+            exclude_hooks: true,
+            exclude_locks: true,
+            require_clean_git_lock: true,
+            warn_concurrent_git: true
+          }
         })
       }).then(() => undefined),
       "Workspace created."
@@ -1190,7 +1206,18 @@ function SyncPage({
           workspace_id: String(form.get("workspace_id") ?? ""),
           node_id: String(form.get("node_id") ?? "") || null,
           local_path: String(form.get("local_path") ?? "") || null,
-          sync_mode: String(form.get("sync_mode") ?? "two_way")
+          sync_mode: String(form.get("sync_mode") ?? "two_way"),
+          sync_git: form.get("sync_git") === "on",
+          exclude: [
+            ".git/**/*.lock",
+            ".git/hooks",
+            ".git/worktrees",
+            "node_modules",
+            "target",
+            "dist",
+            ".venv",
+            "__pycache__"
+          ]
         })
       }).then(() => undefined),
       "Sync session created."
@@ -1209,7 +1236,10 @@ function SyncPage({
                 <strong>{workspace.display_name}</strong>
                 <span>{workspace.project_key} · {workspace.local_start_path}</span>
               </div>
-              <span className="badge">{shortId(workspace.device_id)}</span>
+              <div className="row-actions">
+                <span className="badge">{workspace.sync_git ? ".git sync" : "files only"}</span>
+                <span className="badge">{shortId(workspace.device_id)}</span>
+              </div>
             </div>
           ))}
         </section>
@@ -1222,6 +1252,10 @@ function SyncPage({
           <Field name="display_name" label="Display name" required />
           <Field name="project_key" label="Project key" required />
           <Field name="local_start_path" label="Local path" required />
+          <label className="check-line">
+            <input type="checkbox" name="sync_git" defaultChecked />
+            Sync .git
+          </label>
           <button className="primary" disabled={busy}>
             <Database size={16} />
             Create
@@ -1235,7 +1269,7 @@ function SyncPage({
             <div className="resource-row" key={sync.id}>
               <div>
                 <strong>{sync.local_path}</strong>
-                <span>{sync.remote_path} · {sync.sync_mode}</span>
+                <span>{sync.remote_path} · {sync.sync_mode} · {sync.sync_git ? ".git sync" : "files only"}</span>
               </div>
               <div className="row-actions">
                 <StatusPill status={sync.status} />
@@ -1278,6 +1312,10 @@ function SyncPage({
           <SelectField name="sync_mode" label="Mode">
             <option value="two_way">two_way</option>
           </SelectField>
+          <label className="check-line">
+            <input type="checkbox" name="sync_git" defaultChecked />
+            Sync .git
+          </label>
           <button className="primary" disabled={busy}>
             <FolderSync size={16} />
             Create
