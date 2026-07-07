@@ -12,7 +12,12 @@ RUN npm run build
 
 FROM nginx:1.27-alpine
 
+ARG AGENT_REMOTE_VERSION=0.1.0
+ENV AGENT_REMOTE_VERSION=$AGENT_REMOTE_VERSION
+
+LABEL org.opencontainers.image.version=$AGENT_REMOTE_VERSION
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+RUN printf '{"version":"%s"}\n' "$AGENT_REMOTE_VERSION" > /usr/share/nginx/html/version.json
 EXPOSE 80
-
