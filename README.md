@@ -1,5 +1,7 @@
 # agent-remote-admin-web
 
+English | [中文](README.zh-CN.md)
+
 Administrative web frontend for agent-remote.
 
 The frontend stack uses TypeScript, React, Vite, and lucide-react. It provides the management console for users, devices, tool accounts, nodes, sessions, sync, remote browser sessions, audit logs, and local console settings.
@@ -30,7 +32,7 @@ docker build -t agent-remote-admin-web .
 
 By default the production build uses a relative API base, so the reverse proxy should route `/api/*` to `agent-remote-server` and all other paths to the admin web container.
 
-GitHub Actions builds and pushes the production image to GHCR for `v*` tags.
+GitHub Actions builds and pushes the production image to GHCR for `v*` tags and creates a GitHub Release record with generated release notes.
 
 ## License
 
