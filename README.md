@@ -2,9 +2,7 @@
 
 Administrative web frontend for agent-remote.
 
-The current frontend provides the remote temporary browser workspace for creating, listing, connecting, and stopping browser sessions.
-
-The frontend stack uses TypeScript, React, Vite, and lucide-react. Later management pages can add TanStack Query/Table and a component system when the broader admin console is implemented.
+The frontend stack uses TypeScript, React, Vite, and lucide-react. It provides the management console for users, devices, tool accounts, nodes, sessions, sync, remote browser sessions, audit logs, and local console settings.
 
 ## Commands
 
@@ -21,6 +19,18 @@ npm run build
 ```
 
 Set `VITE_AGENT_REMOTE_API_BASE` to point the UI at a non-local control plane.
+
+## Container
+
+Build the static admin web image:
+
+```sh
+docker build -t agent-remote-admin-web .
+```
+
+By default the production build uses a relative API base, so the reverse proxy should route `/api/*` to `agent-remote-server` and all other paths to the admin web container.
+
+GitHub Actions builds and pushes the production image to GHCR for `v*` tags.
 
 ## License
 
