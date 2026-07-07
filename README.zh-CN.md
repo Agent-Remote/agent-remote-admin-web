@@ -2,39 +2,37 @@
 
 [English](README.md) | 中文
 
-agent-remote-admin-web 是 agent-remote 的管理端前端。技术栈为 TypeScript、React、Vite 和 lucide-react。
+agent-remote 的管理 Web 前端。
 
-## 功能范围
+前端技术栈使用 TypeScript、React、Vite 和 lucide-react。它提供管理控制台，用于用户、设备、工具账户、节点、session、同步、远端浏览器会话、审计日志和本地控制台设置。
 
-管理端提供以下视图和操作：
-
-- 用户和设备管理。
-- Claude tool account 管理。
-- 节点注册、状态和任务查看。
-- workspace、同步会话和 tool session 查看。
-- 临时远程浏览器会话管理。
-- 审计日志。
-- 本地控制台设置。
-
-## 本地开发
+## 命令
 
 ```sh
 npm install
+```
+
+```sh
 npm run dev
+```
+
+```sh
 npm run build
 ```
 
-设置 `VITE_AGENT_REMOTE_API_BASE` 可让前端连接非本地控制平面。
+设置 `VITE_AGENT_REMOTE_API_BASE` 可让 UI 指向非本地控制平面。
 
 ## 容器
+
+构建静态 admin web 镜像：
 
 ```sh
 docker build -t agent-remote-admin-web .
 ```
 
-生产构建默认使用相对 API base。反向代理应把 `/api/*` 转发到 `agent-remote-server`，其他路径转发到 admin web 容器。
+默认情况下，生产构建使用相对 API base，因此反向代理应把 `/api/*` 路由到 `agent-remote-server`，并把其他路径路由到 admin web 容器。
 
-GitHub Actions 会为 release tag 构建并推送 GHCR 镜像，同时创建 GitHub Release 记录和 release notes。
+GitHub Actions 会在 `v*` tag 上构建生产镜像并推送到 GHCR，同时创建带生成 release notes 的 GitHub Release 记录。
 
 ## 许可证
 
