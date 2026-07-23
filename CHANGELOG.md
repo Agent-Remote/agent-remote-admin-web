@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.4-fix.2 - 2026-07-23
+
+- fix CLI login approval and session refresh (bd4d80a)
+
 ## v0.0.4-fix.1 - 2026-07-23
 
 - fix: preserve node registration credentials (#1) (55b90cb)

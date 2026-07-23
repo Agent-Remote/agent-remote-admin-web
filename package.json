@@ -1,6 +1,6 @@
 {
   "name": "agent-remote-admin-web",
-  "version": "0.0.4-fix.1",
+  "version": "0.0.4-fix.2",
   "private": true,
   "type": "module",
   "scripts": {
