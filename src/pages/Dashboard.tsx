@@ -21,6 +21,7 @@ import {
   Shield,
   Square,
   TerminalSquare,
+  Trash2,
   UserPlus,
   Users,
   Wrench
@@ -379,6 +380,21 @@ function DevicesPage({ devices, busy, request, runAction, setNotice }: Dashboard
                   <RotateCcw size={15} />
                   {t("common.rotate")}
                 </button>
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    if (confirm(t("common.confirmDelete", { name: device.name }))) {
+                      void runAction(
+                        () => request(`/devices/${device.id}`, { method: "DELETE" }).then(() => undefined),
+                        t("devices.deleted")
+                      );
+                    }
+                  }}
+                  type="button"
+                >
+                  <Trash2 size={15} />
+                  {t("common.delete")}
+                </button>
               </>
             }
           />
@@ -508,6 +524,21 @@ function AccountsPage({ accounts, busy, request, runAction, setNotice, me }: Das
                 >
                   <Ban size={15} />
                   {t("common.disable")}
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    if (confirm(t("common.confirmDelete", { name: account.display_name }))) {
+                      void runAction(
+                        () => request(`/tool-accounts/${account.id}`, { method: "DELETE" }).then(() => undefined),
+                        t("accounts.deleted")
+                      );
+                    }
+                  }}
+                  type="button"
+                >
+                  <Trash2 size={15} />
+                  {t("common.delete")}
                 </button>
               </>
             }
@@ -681,6 +712,21 @@ function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNot
                   >
                     <Ban size={15} />
                     {t("common.disable")}
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => {
+                      if (confirm(t("common.confirmDelete", { name: node.name }))) {
+                        void runAction(
+                          () => request(`/nodes/${node.id}`, { method: "DELETE" }).then(() => undefined),
+                          t("nodes.deleted")
+                        );
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                    {t("common.delete")}
                   </button>
                 </>
               }
@@ -957,6 +1003,21 @@ function SyncPage({ workspaces, syncSessions, devices, nodes, busy, request, run
                 <>
                   <Badge>{workspace.sync_git ? t("common.gitSync") : t("common.filesOnly")}</Badge>
                   <Badge>{shortId(workspace.device_id)}</Badge>
+                  <button
+                    disabled={busy}
+                    onClick={() => {
+                      if (confirm(t("common.confirmDelete", { name: workspace.display_name }))) {
+                        void runAction(
+                          () => request(`/workspaces/${workspace.id}`, { method: "DELETE" }).then(() => undefined),
+                          t("sync.workspaceDeleted")
+                        );
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                    {t("common.delete")}
+                  </button>
                 </>
               }
             />
@@ -1028,6 +1089,21 @@ function SyncPage({ workspaces, syncSessions, devices, nodes, busy, request, run
                   >
                     <Play size={15} />
                     {t("sync.resume")}
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => {
+                      if (confirm(t("common.confirmDelete", { name: sync.local_path }))) {
+                        void runAction(
+                          () => request(`/sync-sessions/${sync.id}`, { method: "DELETE" }).then(() => undefined),
+                          t("sync.deleted")
+                        );
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                    {t("common.delete")}
                   </button>
                 </>
               }
@@ -1158,6 +1234,21 @@ function BrowserPage({ browserSessions, accounts, busy, apiBase, request, runAct
             >
               <Square size={15} />
               {t("sessions.stop")}
+            </button>
+            <button
+              disabled={busy}
+              onClick={() => {
+                if (confirm(t("common.confirmDelete", { name: selected.target_url ?? selected.id }))) {
+                  void runAction(
+                    () => request(`/browser-sessions/${selected.id}`, { method: "DELETE" }).then(() => undefined),
+                    t("browser.deleted")
+                  );
+                }
+              }}
+              type="button"
+            >
+              <Trash2 size={15} />
+              {t("common.delete")}
             </button>
           </div>
         ) : null}
