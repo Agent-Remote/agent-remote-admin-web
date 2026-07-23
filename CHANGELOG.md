@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.4 - 2026-07-23
+
+- feat: add runtime backend controls (852e8ad)
+- fix: keep release version examples in sync (cab9d3c)
+
 ## v0.0.3 - 2026-07-07
 
 - docs: sync Chinese README with English (0d95c10)
