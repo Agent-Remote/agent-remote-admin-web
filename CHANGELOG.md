@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.4-fix.1 - 2026-07-23
+
+- fix: preserve node registration credentials (#1) (55b90cb)
+
 ## v0.0.4 - 2026-07-23
 
 - feat: add runtime backend controls (852e8ad)

@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   echo "Usage: $0 <version>" >&2
-  echo "Example: $0 0.0.4" >&2
+  echo "Example: $0 0.0.4-fix.1" >&2
 }
 
 if [[ $# -ne 1 ]]; then
@@ -23,7 +23,9 @@ python3 - "$VERSION" <<'PY'
 from __future__ import annotations
 
 import re
+import stat
 import sys
+import tempfile
 from pathlib import Path
 
 version = sys.argv[1]
@@ -31,7 +33,14 @@ version = sys.argv[1]
 script = Path("scripts/prepare-release.sh")
 text = script.read_text()
 text = re.sub(r"Example: \$0 [0-9A-Za-z.+-]+", f"Example: $0 {version}", text)
-script.write_text(text)
+script_mode = stat.S_IMODE(script.stat().st_mode)
+with tempfile.NamedTemporaryFile(
+    mode="w", dir=script.parent, prefix=f".{script.name}.", delete=False
+) as output:
+    output.write(text)
+    replacement = Path(output.name)
+replacement.chmod(script_mode)
+replacement.replace(script)
 
 dockerfile = Path("Dockerfile")
 text = dockerfile.read_text()
