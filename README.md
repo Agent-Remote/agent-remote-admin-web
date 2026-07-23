@@ -6,6 +6,8 @@ Administrative web frontend for agent-remote.
 
 The frontend stack uses TypeScript, React, Vite, and lucide-react. It provides the management console for users, devices, tool accounts, nodes, sessions, sync, remote browser sessions, audit logs, and local console settings.
 
+Runtime controls include node backend allowlists/defaults/policy and capability inspection, account backend pinning and explicit migration, plus session backend/resource/replacement visibility. Interrupted sessions are shown as non-attachable so operators can distinguish them from recoverable active sessions.
+
 ## Commands
 
 ```sh

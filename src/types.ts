@@ -42,6 +42,7 @@ export type ToolAccount = {
   locale: string;
   preferred_node_tags: string[];
   affinity_node_id: UUID | null;
+  runtime_backend: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -60,6 +61,10 @@ export type NodeItem = {
   ssh_port: number | null;
   ssh_user: string | null;
   supported_tool_types: string[];
+  allowed_runtime_backends: string[];
+  default_runtime_backend: string;
+  runtime_policy: Record<string, unknown>;
+  runtime_capabilities: Record<string, unknown>;
   last_heartbeat_at: string | null;
   version: string | null;
   created_at: string;
@@ -115,6 +120,9 @@ export type ToolSession = {
   status: string;
   tmux_session_name: string | null;
   container_id: string | null;
+  runtime_backend: string;
+  runtime_resource_id: string | null;
+  replaces_session_id: UUID | null;
   create_task_id: string | null;
   stop_task_id: string | null;
   created_at: string;
