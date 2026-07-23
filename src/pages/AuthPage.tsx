@@ -13,7 +13,7 @@ export function AuthPage({
   setApiBase,
   setBusy,
   setNotice,
-  setToken
+  onAuthenticated
 }: {
   apiBase: string;
   busy: boolean;
@@ -22,7 +22,7 @@ export function AuthPage({
   setApiBase: React.Dispatch<React.SetStateAction<string>>;
   setBusy: React.Dispatch<React.SetStateAction<boolean>>;
   setNotice: React.Dispatch<React.SetStateAction<Notice | null>>;
-  setToken: React.Dispatch<React.SetStateAction<string>>;
+  onAuthenticated: (token: string, expiresIn: number) => void;
 }) {
   const { locale, setLocale, t } = useI18n();
 
@@ -32,7 +32,7 @@ export function AuthPage({
     setBusy(true);
     setNotice(null);
     try {
-      const response = await request<ApiResponse<{ access_token: string }>>("/auth/login", {
+      const response = await request<ApiResponse<{ access_token: string; expires_in: number }>>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           username: String(form.get("username") ?? ""),
@@ -40,7 +40,7 @@ export function AuthPage({
           totp_code: String(form.get("totp_code") ?? "") || null
         })
       });
-      setToken(response.data.access_token);
+      onAuthenticated(response.data.access_token, response.data.expires_in);
     } catch (error) {
       setNotice({ kind: "error", message: errorText(error, t("auth.loginFailed")) });
     } finally {
@@ -54,7 +54,7 @@ export function AuthPage({
     setBusy(true);
     setNotice(null);
     try {
-      const response = await request<ApiResponse<{ access_token: string }>>("/auth/bootstrap", {
+      const response = await request<ApiResponse<{ access_token: string; expires_in: number }>>("/auth/bootstrap", {
         method: "POST",
         body: JSON.stringify({
           username: String(form.get("username") ?? ""),
@@ -62,7 +62,7 @@ export function AuthPage({
           display_name: String(form.get("display_name") ?? "") || null
         })
       });
-      setToken(response.data.access_token);
+      onAuthenticated(response.data.access_token, response.data.expires_in);
     } catch (error) {
       setNotice({ kind: "error", message: errorText(error, t("auth.bootstrapFailed")) });
     } finally {

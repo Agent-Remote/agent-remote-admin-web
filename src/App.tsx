@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiClient, defaultApiBase, loadOptional } from "./api/client";
 import { I18nProvider, useI18n } from "./i18n/I18nProvider";
 import { AuthPage } from "./pages/AuthPage";
+import { CliApprovalPage } from "./pages/CliApprovalPage";
 import { Dashboard } from "./pages/Dashboard";
 import {
   type ApiResponse,
@@ -26,6 +27,9 @@ function AppInner() {
     localStorage.getItem("agentRemoteApiBase") ?? defaultApiBase
   );
   const [token, setToken] = useState(localStorage.getItem("agentRemoteToken") ?? "");
+  const [tokenExpiresAt, setTokenExpiresAt] = useState(
+    Number(localStorage.getItem("agentRemoteTokenExpiresAt") ?? "0")
+  );
   const [page, setPage] = useState<Page>("overview");
   const [me, setMe] = useState<User | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -103,6 +107,25 @@ function AppInner() {
 
   useEffect(() => {
     if (!token) return;
+    const delay = tokenExpiresAt
+      ? Math.max(tokenExpiresAt - Date.now() - 300_000, 1_000)
+      : 1_000;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await client.request<
+          ApiResponse<{ access_token: string; expires_in: number }>
+        >("/auth/refresh", { method: "POST" });
+        authenticate(response.data.access_token, response.data.expires_in);
+      } catch (error) {
+        logout();
+        setNotice({ kind: "error", message: errorText(error, t("auth.refreshFailed")) });
+      }
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [client, t, token, tokenExpiresAt]);
+
+  useEffect(() => {
+    if (!token) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) void loadAll();
     }, 15000);
@@ -125,9 +148,19 @@ function AppInner() {
 
   function logout() {
     localStorage.removeItem("agentRemoteToken");
+    localStorage.removeItem("agentRemoteTokenExpiresAt");
     setToken("");
+    setTokenExpiresAt(0);
     setMe(null);
     setNotice(null);
+  }
+
+  function authenticate(accessToken: string, expiresIn: number) {
+    const expiresAt = Date.now() + expiresIn * 1000;
+    localStorage.setItem("agentRemoteToken", accessToken);
+    localStorage.setItem("agentRemoteTokenExpiresAt", String(expiresAt));
+    setToken(accessToken);
+    setTokenExpiresAt(expiresAt);
   }
 
   if (!token || !me) {
@@ -140,9 +173,13 @@ function AppInner() {
         setApiBase={setApiBase}
         setBusy={setBusy}
         setNotice={setNotice}
-        setToken={setToken}
+        onAuthenticated={authenticate}
       />
     );
+  }
+
+  if (window.location.pathname === "/cli") {
+    return <CliApprovalPage request={request} />;
   }
 
   return (

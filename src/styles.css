@@ -93,6 +93,10 @@ h2 {
   width: min(900px, 100%);
 }
 
+.cli-approval-panel {
+  max-width: 520px;
+}
+
 .auth-head,
 .toolbar,
 .panel-title,
