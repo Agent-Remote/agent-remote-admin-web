@@ -89,7 +89,13 @@ export function AuthPage({
           </select>
         </div>
         <Field label={t("common.api")} value={apiBase} onChange={(event) => setApiBase(event.target.value)} />
-        {notice ? <NoticeBar notice={notice} /> : null}
+        {notice ? (
+          <NoticeBar
+            dismissLabel={t("common.dismiss")}
+            notice={notice}
+            onDismiss={() => setNotice(null)}
+          />
+        ) : null}
         <div className="auth-grid">
           <form className="panel form-panel" onSubmit={login}>
             <PanelHead icon={KeyRound} title={t("auth.login")} />

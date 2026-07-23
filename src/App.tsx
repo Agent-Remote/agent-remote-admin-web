@@ -48,7 +48,6 @@ function AppInner() {
   const loadAll = useCallback(async () => {
     if (!token) return;
     setBusy(true);
-    setNotice(null);
     try {
       const currentUser = await request<ApiResponse<User>>("/users/me");
       setMe(currentUser.data);

@@ -1,17 +1,37 @@
 import {
   AlertTriangle,
   CheckCircle2,
+  X,
   type LucideIcon
 } from "lucide-react";
 import type React from "react";
 import type { Notice } from "../types";
 
-export function NoticeBar({ notice }: { notice: Notice }) {
+export function NoticeBar({
+  notice,
+  onDismiss,
+  dismissLabel = "Dismiss"
+}: {
+  notice: Notice;
+  onDismiss?: () => void;
+  dismissLabel?: string;
+}) {
   const Icon = notice.kind === "error" ? AlertTriangle : CheckCircle2;
   return (
     <div className={`notice ${notice.kind}`} role={notice.kind === "error" ? "alert" : "status"}>
       <Icon size={16} />
       <span>{notice.message}</span>
+      {onDismiss ? (
+        <button
+          aria-label={dismissLabel}
+          className="notice-dismiss"
+          onClick={onDismiss}
+          title={dismissLabel}
+          type="button"
+        >
+          <X size={15} />
+        </button>
+      ) : null}
     </div>
   );
 }

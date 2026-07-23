@@ -158,7 +158,13 @@ export function Dashboard(props: DashboardProps) {
             {t("common.refresh")}
           </button>
         </header>
-        {props.notice ? <NoticeBar notice={props.notice} /> : null}
+        {props.notice ? (
+          <NoticeBar
+            dismissLabel={t("common.dismiss")}
+            notice={props.notice}
+            onDismiss={() => props.setNotice(null)}
+          />
+        ) : null}
         {props.page === "overview" ? <OverviewPage {...props} failedTasks={failedTasks} isAdmin={isAdmin} /> : null}
         {props.page === "users" ? <UsersPage {...props} isAdmin={isAdmin} /> : null}
         {props.page === "devices" ? <DevicesPage {...props} /> : null}
@@ -529,6 +535,17 @@ function AccountsPage({ accounts, busy, request, runAction, setNotice, me }: Das
 
 function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNotice }: DashboardProps & { isAdmin: boolean }) {
   const { t } = useI18n();
+
+  function showRegistrationCredentials(data: { node: NodeItem; registration_token: string }) {
+    setNotice({
+      kind: "info",
+      message: t("nodes.registrationCredentials", {
+        nodeId: data.node.id,
+        token: data.registration_token
+      })
+    });
+  }
+
   async function createNode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -537,7 +554,7 @@ function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNot
       form.get("allow_native") === "on" ? "native" : null
     ].filter((value): value is string => value !== null);
     await runAction(async () => {
-      const response = await request<ApiResponse<{ registration_token: string }>>("/nodes", {
+      const response = await request<ApiResponse<{ node: NodeItem; registration_token: string }>>("/nodes", {
         method: "POST",
         body: JSON.stringify({
           name: String(form.get("name") ?? ""),
@@ -563,7 +580,7 @@ function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNot
           ssh_user: String(form.get("ssh_user") ?? "") || null
         })
       });
-      setNotice({ kind: "info", message: t("nodes.registrationToken", { token: response.data.registration_token }) });
+      showRegistrationCredentials(response.data);
     });
     event.currentTarget.reset();
   }
@@ -619,6 +636,24 @@ function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNot
               actions={
                 <>
                   <StatusPill status={node.status} />
+                  <button
+                    disabled={busy}
+                    onClick={() => {
+                      if (confirm(t("nodes.confirmRotateRegistration", { name: node.name }))) {
+                        void runAction(async () => {
+                          const response = await request<ApiResponse<{ node: NodeItem; registration_token: string }>>(
+                            `/nodes/${node.id}/registration-token`,
+                            { method: "POST" }
+                          );
+                          showRegistrationCredentials(response.data);
+                        });
+                      }
+                    }}
+                    type="button"
+                  >
+                    <RotateCcw size={15} />
+                    {t("nodes.rotateRegistration")}
+                  </button>
                   <button
                     disabled={busy}
                     onClick={() =>

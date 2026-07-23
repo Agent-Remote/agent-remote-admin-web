@@ -338,6 +338,21 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.notice > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.notice-dismiss {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  padding: 0;
+  border-color: currentColor;
+  background: transparent;
+  color: inherit;
+}
+
 .notice.info {
   border: 1px solid #a9d2c6;
   background: #edf8f5;
