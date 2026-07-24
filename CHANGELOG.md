@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.4-fix.4 - 2026-07-24
+
+- refactor: modernize responsive admin console (7c610d4)
+
 ## v0.0.4-fix.3 - 2026-07-23
 
 - feat: add resource delete actions (f1ebb3c)
