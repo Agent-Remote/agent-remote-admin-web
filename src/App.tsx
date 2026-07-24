@@ -1,109 +1,76 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LoaderCircle, RefreshCw, Shield } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ApiClient, defaultApiBase, loadOptional } from "./api/client";
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ApiClient, defaultApiBase } from "./api/client";
+import { ConfirmProvider } from "./app/ConfirmProvider";
+import { isPage } from "./app/navigation";
+import { useConsoleData } from "./hooks/useConsoleData";
 import { I18nProvider, useI18n } from "./i18n/I18nProvider";
 import { AuthPage } from "./pages/AuthPage";
 import { CliApprovalPage } from "./pages/CliApprovalPage";
 import { Dashboard } from "./pages/Dashboard";
-import {
-  type ApiResponse,
-  type AuditLog,
-  type BrowserSession,
-  type Device,
-  type NodeItem,
-  type NodeTask,
-  type Notice,
-  type Page,
-  type SyncSession,
-  type ToolAccount,
-  type ToolSession,
-  type User,
-  type Workspace
-} from "./types";
+import type { ApiResponse, Notice, Page, User } from "./types";
 import { errorText } from "./utils/format";
 
 function AppInner() {
   const { t } = useI18n();
-  const [apiBase, setApiBase] = useState(
-    localStorage.getItem("agentRemoteApiBase") ?? defaultApiBase
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const apiBase = defaultApiBase;
+  const developmentToken = import.meta.env.DEV
+    ? import.meta.env.VITE_AGENT_REMOTE_DEV_TOKEN
+    : undefined;
+  const [token, setToken] = useState(
+    localStorage.getItem("agentRemoteToken") ?? developmentToken ?? ""
   );
-  const [token, setToken] = useState(localStorage.getItem("agentRemoteToken") ?? "");
   const [tokenExpiresAt, setTokenExpiresAt] = useState(
     Number(localStorage.getItem("agentRemoteTokenExpiresAt") ?? "0")
   );
-  const [page, setPage] = useState<Page>("overview");
-  const [me, setMe] = useState<User | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const [users, setUsers] = useState<User[]>([]);
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [accounts, setAccounts] = useState<ToolAccount[]>([]);
-  const [nodes, setNodes] = useState<NodeItem[]>([]);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [syncSessions, setSyncSessions] = useState<SyncSession[]>([]);
-  const [toolSessions, setToolSessions] = useState<ToolSession[]>([]);
-  const [browserSessions, setBrowserSessions] = useState<BrowserSession[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [nodeTasks, setNodeTasks] = useState<NodeTask[]>([]);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [bootstrapCompleted, setBootstrapCompleted] = useState(false);
 
   const client = useMemo(() => new ApiClient(apiBase, token), [apiBase, token]);
   const request = useCallback(client.request.bind(client), [client]);
-
-  const loadAll = useCallback(async () => {
-    if (!token) return;
-    setBusy(true);
-    try {
-      const currentUser = await request<ApiResponse<User>>("/users/me");
-      setMe(currentUser.data);
-      const [
-        loadedUsers,
-        loadedDevices,
-        loadedAccounts,
-        loadedNodes,
-        loadedWorkspaces,
-        loadedSyncSessions,
-        loadedToolSessions,
-        loadedBrowserSessions,
-        loadedAuditLogs,
-        loadedNodeTasks
-      ] = await Promise.all([
-        loadOptional(() => client.list<User>("/users"), []),
-        loadOptional(() => client.list<Device>("/devices"), []),
-        loadOptional(() => client.list<ToolAccount>("/tool-accounts"), []),
-        loadOptional(() => client.list<NodeItem>("/nodes"), []),
-        loadOptional(() => client.list<Workspace>("/workspaces"), []),
-        loadOptional(() => client.list<SyncSession>("/sync-sessions"), []),
-        loadOptional(() => client.list<ToolSession>("/sessions"), []),
-        loadOptional(() => client.list<BrowserSession>("/browser-sessions"), []),
-        loadOptional(() => client.list<AuditLog>("/audit-logs"), []),
-        loadOptional(() => client.list<NodeTask>("/nodes/tasks?limit=100"), [])
-      ]);
-      setUsers(loadedUsers);
-      setDevices(loadedDevices);
-      setAccounts(loadedAccounts);
-      setNodes(loadedNodes);
-      setWorkspaces(loadedWorkspaces);
-      setSyncSessions(loadedSyncSessions);
-      setToolSessions(loadedToolSessions);
-      setBrowserSessions(loadedBrowserSessions);
-      setAuditLogs(loadedAuditLogs);
-      setNodeTasks(loadedNodeTasks);
-    } catch (error) {
-      setNotice({ kind: "error", message: errorText(error, t("common.loadFailed")) });
-    } finally {
-      setBusy(false);
-    }
-  }, [client, request, t, token]);
-
-  useEffect(() => {
-    localStorage.setItem("agentRemoteApiBase", apiBase);
-  }, [apiBase]);
+  const meQuery = useQuery({
+    queryKey: ["session", "me"],
+    queryFn: async () => (await request<ApiResponse<User>>("/users/me")).data,
+    enabled: Boolean(token),
+    retry: false,
+    staleTime: 60_000
+  });
+  const bootstrapQuery = useQuery({
+    queryKey: ["session", "bootstrap-status"],
+    queryFn: async () =>
+      (await request<ApiResponse<{ required: boolean }>>("/auth/bootstrap-status")).data,
+    enabled: !token,
+    retry: 2,
+    staleTime: 0
+  });
+  const pathPage = location.pathname.startsWith("/app/")
+    ? location.pathname.split("/")[2]
+    : undefined;
+  const activePage = isPage(pathPage) ? pathPage : null;
+  const data = useConsoleData(
+    client,
+    Boolean(token && meQuery.data),
+    activePage,
+    meQuery.data?.role === "admin"
+  );
 
   useEffect(() => {
     if (!token) return;
     localStorage.setItem("agentRemoteToken", token);
-    void loadAll();
-  }, [loadAll, token]);
+  }, [token]);
+
+  useEffect(() => {
+    if (!token || !meQuery.error) return;
+    logout();
+    setNotice({ kind: "error", message: errorText(meQuery.error, t("common.loadFailed")) });
+    // logout is deliberately tied to an invalid current-user request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meQuery.error, t, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -122,90 +89,140 @@ function AppInner() {
       }
     }, delay);
     return () => window.clearTimeout(timer);
+    // authenticate and logout only update stable session primitives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, t, token, tokenExpiresAt]);
 
-  useEffect(() => {
-    if (!token) return;
-    const timer = window.setInterval(() => {
-      if (!document.hidden) void loadAll();
-    }, 15000);
-    return () => window.clearInterval(timer);
-  }, [loadAll, token]);
-
   async function runAction(action: () => Promise<void>, success = "") {
-    setBusy(true);
+    setActionBusy(true);
     setNotice(null);
     try {
       await action();
       if (success) setNotice({ kind: "info", message: success });
-      await loadAll();
+      await data.refresh();
     } catch (error) {
       setNotice({ kind: "error", message: errorText(error, t("common.requestFailed")) });
     } finally {
-      setBusy(false);
+      setActionBusy(false);
     }
   }
 
   function logout() {
     localStorage.removeItem("agentRemoteToken");
     localStorage.removeItem("agentRemoteTokenExpiresAt");
+    queryClient.clear();
     setToken("");
     setTokenExpiresAt(0);
-    setMe(null);
     setNotice(null);
   }
 
   function authenticate(accessToken: string, expiresIn: number) {
     const expiresAt = Date.now() + expiresIn * 1000;
+    queryClient.clear();
     localStorage.setItem("agentRemoteToken", accessToken);
     localStorage.setItem("agentRemoteTokenExpiresAt", String(expiresAt));
     setToken(accessToken);
     setTokenExpiresAt(expiresAt);
   }
 
-  if (!token || !me) {
+  if (!token) {
+    if (bootstrapQuery.isPending) {
+      return (
+        <main className="boot-screen" aria-live="polite">
+          <div className="boot-mark"><Shield size={22} /></div>
+          <LoaderCircle className="spin" size={20} />
+          <span>{t("common.loading")}</span>
+        </main>
+      );
+    }
+    if (bootstrapQuery.isError) {
+      return (
+        <main className="boot-screen boot-error" role="alert">
+          <div className="boot-mark"><Shield size={22} /></div>
+          <strong>{t("auth.bootstrapStatusFailed")}</strong>
+          <button
+            disabled={bootstrapQuery.isFetching}
+            onClick={() => void bootstrapQuery.refetch()}
+            type="button"
+          >
+            <RefreshCw className={bootstrapQuery.isFetching ? "spin" : ""} size={16} />
+            {t("common.retry")}
+          </button>
+        </main>
+      );
+    }
     return (
       <AuthPage
-        apiBase={apiBase}
-        busy={busy}
+        mode={bootstrapQuery.data?.required && !bootstrapCompleted ? "bootstrap" : "login"}
+        busy={actionBusy}
         notice={notice}
         request={request}
-        setApiBase={setApiBase}
-        setBusy={setBusy}
+        setBusy={setActionBusy}
         setNotice={setNotice}
         onAuthenticated={authenticate}
+        onBootstrapComplete={() => {
+          setBootstrapCompleted(true);
+          void queryClient.invalidateQueries({ queryKey: ["session", "bootstrap-status"] });
+        }}
       />
     );
   }
 
-  if (window.location.pathname === "/cli") {
-    return <CliApprovalPage request={request} />;
+  if (!meQuery.data) {
+    return (
+      <main className="boot-screen" aria-live="polite">
+        <div className="boot-mark"><Shield size={22} /></div>
+        <LoaderCircle className="spin" size={20} />
+        <span>{t("common.loading")}</span>
+      </main>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/cli" element={<CliApprovalPage request={request} />} />
+      <Route
+        path="/app/:page"
+        element={
+          <ConsoleRoute
+            {...data}
+            apiBase={apiBase}
+            busy={actionBusy}
+            syncing={data.refreshing}
+            syncError={data.error instanceof Error ? data.error.message : data.error ? String(data.error) : null}
+            lastSyncedAt={data.lastUpdatedAt}
+            logout={logout}
+            me={meQuery.data}
+            notice={notice}
+            request={request}
+            runAction={runAction}
+            setNotice={setNotice}
+          />
+        }
+      />
+      <Route path="*" element={<Navigate replace to="/app/overview" />} />
+    </Routes>
+  );
+}
+
+type ConsoleRouteProps = Omit<React.ComponentProps<typeof Dashboard>, "page" | "setPage" | "loadAll"> & {
+  refresh: () => Promise<void>;
+};
+
+function ConsoleRoute({ refresh, ...props }: ConsoleRouteProps) {
+  const { page } = useParams();
+  const navigate = useNavigate();
+
+  if (!isPage(page)) {
+    return <Navigate replace to="/app/overview" />;
   }
 
   return (
     <Dashboard
-      accounts={accounts}
-      apiBase={apiBase}
-      auditLogs={auditLogs}
-      browserSessions={browserSessions}
-      busy={busy}
-      devices={devices}
-      loadAll={loadAll}
-      logout={logout}
-      me={me}
-      nodes={nodes}
-      nodeTasks={nodeTasks}
-      notice={notice}
+      {...props}
+      loadAll={refresh}
       page={page}
-      request={request}
-      runAction={runAction}
-      setApiBase={setApiBase}
-      setNotice={setNotice}
-      setPage={setPage}
-      syncSessions={syncSessions}
-      toolSessions={toolSessions}
-      users={users}
-      workspaces={workspaces}
+      setPage={(nextPage: Page) => navigate(`/app/${nextPage}`)}
     />
   );
 }
@@ -213,7 +230,9 @@ function AppInner() {
 export function App() {
   return (
     <I18nProvider>
-      <AppInner />
+      <ConfirmProvider>
+        <AppInner />
+      </ConfirmProvider>
     </I18nProvider>
   );
 }

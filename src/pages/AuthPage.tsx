@@ -6,23 +6,23 @@ import type { ApiResponse, AppRequest, Notice } from "../types";
 import { errorText } from "../utils/format";
 
 export function AuthPage({
-  apiBase,
+  mode,
   busy,
   notice,
   request,
-  setApiBase,
   setBusy,
   setNotice,
-  onAuthenticated
+  onAuthenticated,
+  onBootstrapComplete
 }: {
-  apiBase: string;
+  mode: "bootstrap" | "login";
   busy: boolean;
   notice: Notice | null;
   request: AppRequest;
-  setApiBase: React.Dispatch<React.SetStateAction<string>>;
   setBusy: React.Dispatch<React.SetStateAction<boolean>>;
   setNotice: React.Dispatch<React.SetStateAction<Notice | null>>;
   onAuthenticated: (token: string, expiresIn: number) => void;
+  onBootstrapComplete: () => void | Promise<void>;
 }) {
   const { locale, setLocale, t } = useI18n();
 
@@ -51,10 +51,14 @@ export function AuthPage({
   async function bootstrap(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    if (form.get("password") !== form.get("password_confirm")) {
+      setNotice({ kind: "error", message: t("auth.passwordMismatch") });
+      return;
+    }
     setBusy(true);
     setNotice(null);
     try {
-      const response = await request<ApiResponse<{ access_token: string; expires_in: number }>>("/auth/bootstrap", {
+      await request<ApiResponse<{ access_token: string; expires_in: number }>>("/auth/bootstrap", {
         method: "POST",
         body: JSON.stringify({
           username: String(form.get("username") ?? ""),
@@ -62,7 +66,8 @@ export function AuthPage({
           display_name: String(form.get("display_name") ?? "") || null
         })
       });
-      onAuthenticated(response.data.access_token, response.data.expires_in);
+      await onBootstrapComplete();
+      setNotice({ kind: "info", message: t("auth.bootstrapComplete") });
     } catch (error) {
       setNotice({ kind: "error", message: errorText(error, t("auth.bootstrapFailed")) });
     } finally {
@@ -75,20 +80,19 @@ export function AuthPage({
       <section className="auth-panel">
         <div className="auth-head">
           <div className="brand-row">
-            <Shield size={24} />
+            <span className="brand-mark"><Shield size={18} /></span>
             <h1>{t("app.name")}</h1>
           </div>
           <select
             aria-label={t("settings.language")}
             className="compact-select"
             value={locale}
-            onChange={(event) => setLocale(event.target.value === "zh" ? "zh" : "en")}
+            onChange={(event) => setLocale(event.target.value === "zh-CN" ? "zh-CN" : "en")}
           >
             <option value="en">English</option>
-            <option value="zh">中文</option>
+            <option value="zh-CN">简体中文</option>
           </select>
         </div>
-        <Field label={t("common.api")} value={apiBase} onChange={(event) => setApiBase(event.target.value)} />
         {notice ? (
           <NoticeBar
             dismissLabel={t("common.dismiss")}
@@ -97,6 +101,7 @@ export function AuthPage({
           />
         ) : null}
         <div className="auth-grid">
+          {mode === "login" ? (
           <form className="panel form-panel" onSubmit={login}>
             <PanelHead icon={KeyRound} title={t("auth.login")} />
             <Field name="username" label={t("auth.username")} required />
@@ -107,16 +112,19 @@ export function AuthPage({
               {t("auth.login")}
             </button>
           </form>
+          ) : (
           <form className="panel form-panel" onSubmit={bootstrap}>
-            <PanelHead icon={UserPlus} title={t("auth.bootstrap")} />
+            <PanelHead icon={UserPlus} title={t("auth.initialSetup")} />
             <Field name="username" label={t("auth.username")} required />
             <Field name="display_name" label={t("auth.displayName")} />
             <Field name="password" label={t("auth.password")} type="password" required />
-            <button disabled={busy}>
+            <Field name="password_confirm" label={t("auth.confirmPassword")} type="password" required />
+            <button className="primary" disabled={busy}>
               <UserPlus size={16} />
-              {t("auth.bootstrap")}
+              {t("auth.createAdmin")}
             </button>
           </form>
+          )}
         </div>
       </section>
     </main>

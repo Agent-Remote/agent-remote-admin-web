@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { type Locale, type MessageKey, messages } from "./messages";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  detectBrowserLocale,
+  type Locale,
+  type MessageKey,
+  messages,
+  normalizeLocale
+} from "./messages";
 
 type I18nContextValue = {
   locale: Locale;
@@ -10,9 +16,11 @@ type I18nContextValue = {
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(
-    (localStorage.getItem("agentRemoteLocale") as Locale | null) ?? "en"
-  );
+  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const value = useMemo<I18nContextValue>(() => {
     function setLocale(nextLocale: Locale) {
@@ -32,6 +40,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, [locale]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+function getInitialLocale(): Locale {
+  const storedLocale = normalizeLocale(localStorage.getItem("agentRemoteLocale"));
+  return storedLocale ?? detectBrowserLocale();
 }
 
 export function useI18n() {

@@ -4,7 +4,7 @@ import {
   X,
   type LucideIcon
 } from "lucide-react";
-import type React from "react";
+import React, { useEffect, useState } from "react";
 import type { Notice } from "../types";
 
 export function NoticeBar({
@@ -204,6 +204,64 @@ export function DetailRow({
       </summary>
       <JsonBlock value={value} />
     </details>
+  );
+}
+
+export function ResponsiveForm({
+  children,
+  closeLabel,
+  icon: Icon,
+  onSubmit,
+  triggerLabel
+}: {
+  children: React.ReactNode;
+  closeLabel: string;
+  icon: LucideIcon;
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
+  triggerLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button className="mobile-form-trigger primary" onClick={() => setOpen(true)} type="button">
+        <Icon size={17} />
+        {triggerLabel}
+      </button>
+      <div className={`responsive-form-layer ${open ? "open" : ""}`}>
+        <button
+          aria-label={closeLabel}
+          className="responsive-form-scrim"
+          onClick={() => setOpen(false)}
+          type="button"
+        />
+        <form className="panel form-panel responsive-form" onSubmit={onSubmit}>
+          <button
+            aria-label={closeLabel}
+            className="mobile-form-close icon-button"
+            onClick={() => setOpen(false)}
+            type="button"
+          >
+            <X size={18} />
+          </button>
+          {children}
+        </form>
+      </div>
+    </>
   );
 }
 

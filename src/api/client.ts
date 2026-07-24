@@ -32,11 +32,3 @@ export class ApiClient {
     return response.data.items;
   }
 }
-
-export async function loadOptional<T>(loader: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await loader();
-  } catch {
-    return fallback;
-  }
-}
