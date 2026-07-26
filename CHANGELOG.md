@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.4-fix.5 - 2026-07-26
+
+- fix: add Windows device option (6d1d7c3)
+- docs: refresh third-party notices (946825b)
+
 ## v0.0.4-fix.4 - 2026-07-24
 
 - refactor: modernize responsive admin console (7c610d4)
