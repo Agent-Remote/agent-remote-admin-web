@@ -116,6 +116,7 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
         <SelectField name="platform" label={t("devices.platform")}>
           <option value="macos">macOS</option>
           <option value="linux">Linux</option>
+          <option value="windows">Windows</option>
         </SelectField>
         <TextAreaField name="ssh_public_key" label={t("devices.sshKey")} required />
         <TextAreaField name="wireguard_public_key" label={t("devices.wgKey")} />
