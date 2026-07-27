@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY index.html tsconfig.json tsconfig.node.json vite.config.ts ./
+COPY public ./public
 COPY src ./src
 
 ARG VITE_AGENT_REMOTE_API_BASE=
