@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.5 - 2026-07-27
+
+- feat: add branding and repository quality gates (f42ee24)
+
 ## v0.0.4-fix.5 - 2026-07-26
 
 - fix: add Windows device option (6d1d7c3)
