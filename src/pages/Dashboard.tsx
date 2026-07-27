@@ -1,7 +1,7 @@
-import { LogOut, Menu, RefreshCw, Shield, X } from "lucide-react";
+import { LogOut, Menu, RefreshCw, X } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { navigationItems } from "../app/navigation";
-import { NoticeBar } from "../components/ui";
+import { BrandMark, NoticeBar } from "../components/ui";
 import { useI18n } from "../i18n/I18nProvider";
 import type { Page } from "../types";
 import type { ConsolePageProps } from "./console/types";
@@ -54,7 +54,7 @@ export function Dashboard(props: DashboardProps) {
     <main className="app-shell">
       <aside className="sidebar">
         <div className="brand-row">
-          <span className="brand-mark"><Shield size={18} /></span>
+          <BrandMark />
           <h1>{t("app.name")}</h1>
         </div>
         <div className="user-chip">
@@ -95,7 +95,7 @@ export function Dashboard(props: DashboardProps) {
       </aside>
       <section className="workspace">
         <header className="toolbar">
-          <div className="mobile-brand"><span className="brand-mark"><Shield size={17} /></span></div>
+          <div className="mobile-brand"><BrandMark /></div>
           <div className="toolbar-title">
             <strong>{t(title)}</strong>
           </div>

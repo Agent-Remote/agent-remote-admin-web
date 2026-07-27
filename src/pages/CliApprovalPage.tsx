@@ -1,7 +1,7 @@
-import { Check, KeyRound } from "lucide-react";
+import { Check } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { Field, NoticeBar } from "../components/ui";
+import { BrandMark, Field, NoticeBar } from "../components/ui";
 import { useI18n } from "../i18n/I18nProvider";
 import type { ApiResponse, AppRequest, Notice } from "../types";
 import { errorText } from "../utils/format";
@@ -36,7 +36,7 @@ export function CliApprovalPage({ request }: { request: AppRequest }) {
     <main className="auth-shell">
       <section className="auth-panel cli-approval-panel">
         <div className="brand-row">
-          <KeyRound size={24} />
+          <BrandMark />
           <h1>{t("cli.title")}</h1>
         </div>
         {notice ? (

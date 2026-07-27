@@ -1,5 +1,7 @@
 # agent-remote-admin-web
 
+<p align="center"><img src="public/agent-remote-icon.svg" alt="Agent Remote 图标" width="80" height="80"></p>
+
 [English](README.md) | 中文
 
 agent-remote 的管理 Web 前端。

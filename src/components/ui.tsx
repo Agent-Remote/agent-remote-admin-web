@@ -7,6 +7,14 @@ import {
 import React, { useEffect, useState } from "react";
 import type { Notice } from "../types";
 
+export function BrandMark() {
+  return (
+    <span className="brand-mark" aria-hidden="true">
+      <img src="/agent-remote-icon.svg" alt="" />
+    </span>
+  );
+}
+
 export function NoticeBar({
   notice,
   onDismiss,

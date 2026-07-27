@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, RefreshCw, Shield } from "lucide-react";
+import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiClient, defaultApiBase } from "./api/client";
 import { ConfirmProvider } from "./app/ConfirmProvider";
 import { isPage } from "./app/navigation";
+import { BrandMark } from "./components/ui";
 import { useConsoleData } from "./hooks/useConsoleData";
 import { I18nProvider, useI18n } from "./i18n/I18nProvider";
 import { AuthPage } from "./pages/AuthPage";
@@ -129,7 +130,7 @@ function AppInner() {
     if (bootstrapQuery.isPending) {
       return (
         <main className="boot-screen" aria-live="polite">
-          <div className="boot-mark"><Shield size={22} /></div>
+          <BrandMark />
           <LoaderCircle className="spin" size={20} />
           <span>{t("common.loading")}</span>
         </main>
@@ -138,7 +139,7 @@ function AppInner() {
     if (bootstrapQuery.isError) {
       return (
         <main className="boot-screen boot-error" role="alert">
-          <div className="boot-mark"><Shield size={22} /></div>
+          <BrandMark />
           <strong>{t("auth.bootstrapStatusFailed")}</strong>
           <button
             disabled={bootstrapQuery.isFetching}
@@ -171,7 +172,7 @@ function AppInner() {
   if (!meQuery.data) {
     return (
       <main className="boot-screen" aria-live="polite">
-        <div className="boot-mark"><Shield size={22} /></div>
+        <BrandMark />
         <LoaderCircle className="spin" size={20} />
         <span>{t("common.loading")}</span>
       </main>

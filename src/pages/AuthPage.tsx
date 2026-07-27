@@ -1,6 +1,6 @@
-import { KeyRound, Shield, UserPlus } from "lucide-react";
+import { KeyRound, UserPlus } from "lucide-react";
 import type React from "react";
-import { NoticeBar, Field } from "../components/ui";
+import { BrandMark, NoticeBar, Field } from "../components/ui";
 import { useI18n } from "../i18n/I18nProvider";
 import type { ApiResponse, AppRequest, Notice } from "../types";
 import { errorText } from "../utils/format";
@@ -80,7 +80,7 @@ export function AuthPage({
       <section className="auth-panel">
         <div className="auth-head">
           <div className="brand-row">
-            <span className="brand-mark"><Shield size={18} /></span>
+            <BrandMark />
             <h1>{t("app.name")}</h1>
           </div>
           <select
