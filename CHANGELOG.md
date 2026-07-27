@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.5-fix.1 - 2026-07-27
+
+- fix: include brand assets in production image (72fc228)
+
 ## v0.0.5 - 2026-07-27
 
 - feat: add branding and repository quality gates (f42ee24)
