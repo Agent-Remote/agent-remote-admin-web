@@ -2,7 +2,8 @@ import {
   Link,
   Play,
   Square,
-  TerminalSquare
+  TerminalSquare,
+  Trash2
 } from "lucide-react";
 import React, { useState } from "react";
 import {
@@ -28,6 +29,9 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
   const confirmAction = useConfirm();
   const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.id ?? "");
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === workspaceId);
+  const deletableSessionCount = toolSessions.filter((session) =>
+    isDeletableSession(session.status)
+  ).length;
 
   async function createSession(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +56,34 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
   return (
     <div className="two-column">
       <section className="panel">
-        <PanelTitle icon={TerminalSquare} title={t("sessions.title")} />
+        <PanelTitle
+          action={
+            deletableSessionCount > 0 ? (
+              <button
+                className="danger-ghost"
+                disabled={busy}
+                onClick={async () => {
+                  if (
+                    await confirmAction(
+                      t("sessions.confirmDeleteAll", { count: deletableSessionCount })
+                    )
+                  ) {
+                    void runAction(
+                      () => request("/sessions", { method: "DELETE" }).then(() => undefined),
+                      t("sessions.deletedAll")
+                    );
+                  }
+                }}
+                type="button"
+              >
+                <Trash2 size={15} />
+                {t("sessions.deleteAll")}
+              </button>
+            ) : undefined
+          }
+          icon={TerminalSquare}
+          title={t("sessions.title")}
+        />
         {toolSessions.length === 0 ? <EmptyBlock label={t("common.empty")} /> : null}
         {toolSessions.map((session) => (
           <ResourceRow
@@ -94,6 +125,31 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
                   <Square size={15} />
                   {t("sessions.stop")}
                 </button>
+                {isDeletableSession(session.status) ? (
+                  <button
+                    className="danger-ghost"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (
+                        await confirmAction(
+                          t("common.confirmDelete", { name: session.project_key })
+                        )
+                      ) {
+                        void runAction(
+                          () =>
+                            request(`/sessions/${session.id}`, { method: "DELETE" }).then(
+                              () => undefined
+                            ),
+                          t("sessions.deleted")
+                        );
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={15} />
+                    {t("common.delete")}
+                  </button>
+                ) : null}
               </>
             }
           />
@@ -140,4 +196,8 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
       </ResponsiveForm>
     </div>
   );
+}
+
+function isDeletableSession(status: string) {
+  return status === "stopped" || status === "interrupted";
 }
