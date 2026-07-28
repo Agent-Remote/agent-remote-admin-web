@@ -2,6 +2,14 @@
 
 <p align="center"><img src="public/agent-remote-icon.svg" alt="Agent Remote 图标" width="80" height="80"></p>
 
+<p align="center">
+  <a href="https://github.com/Agent-Remote/agent-remote-admin-web/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Agent-Remote/agent-remote-admin-web/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://codecov.io/gh/Agent-Remote/agent-remote-admin-web"><img alt="Codecov" src="https://codecov.io/gh/Agent-Remote/agent-remote-admin-web/graph/badge.svg"></a>
+  <a href="https://github.com/Agent-Remote/agent-remote-admin-web/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/Agent-Remote/agent-remote-admin-web?style=flat&logo=github"></a>
+  <img alt="TypeScript 5.7" src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white">
+  <a href="LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/github/license/Agent-Remote/agent-remote-admin-web"></a>
+</p>
+
 [English](README.md) | 中文
 
 agent-remote 的管理 Web 前端。
