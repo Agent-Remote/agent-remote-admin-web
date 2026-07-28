@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.5-fix.2 - 2026-07-28
+
+- feat: add session deletion controls (103d7cd)
+
 ## v0.0.5-fix.1 - 2026-07-27
 
 - fix: include brand assets in production image (72fc228)
