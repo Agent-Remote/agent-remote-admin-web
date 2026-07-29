@@ -1,6 +1,7 @@
 import {
   Activity,
   BriefcaseBusiness,
+  Cable,
   FileClock,
   FolderSync,
   KeyRound,
@@ -29,6 +30,7 @@ export const navigationItems: NavigationItem[] = [
   { id: "accounts", label: "nav.accounts", icon: KeyRound },
   { id: "credentials", label: "nav.credentials", icon: BriefcaseBusiness },
   { id: "nodes", label: "nav.nodes", icon: Server, adminOnly: true },
+  { id: "forwards", label: "nav.forwards", icon: Cable },
   { id: "sessions", label: "nav.sessions", icon: TerminalSquare },
   { id: "sync", label: "nav.sync", icon: FolderSync },
   { id: "browser", label: "nav.browser", icon: MonitorUp },

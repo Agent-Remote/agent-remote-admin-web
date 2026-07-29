@@ -477,6 +477,23 @@ p {
   margin-left: auto;
 }
 
+.inline-state,
+.data-state {
+  align-items: center;
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.inline-state {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.data-state {
+  grid-template-columns: auto 1fr auto;
+  min-height: 88px;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -499,6 +516,29 @@ p {
   width: 17px;
   min-height: 17px;
   padding: 0;
+}
+
+.policy-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 4px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  padding: 14px 0 0;
+}
+
+.policy-group legend {
+  padding: 0 8px 0 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .primary {
@@ -682,6 +722,44 @@ p {
 .resource-main small {
   color: var(--text-subtle);
   font-size: 12px;
+}
+
+.resource-main .forward-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: visible;
+  white-space: normal;
+}
+
+.resource-main .forward-title > span:first-child {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-main .forward-title .status-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.resource-main .forward-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  margin-top: 5px;
+  overflow: visible;
+  white-space: normal;
+}
+
+.resource-main .forward-meta > span {
+  display: inline;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .row-actions,
@@ -1043,6 +1121,19 @@ p {
   .resource-row {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .data-state {
+    grid-template-columns: auto 1fr;
+  }
+
+  .data-state button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .row-actions {

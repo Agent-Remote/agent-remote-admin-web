@@ -18,6 +18,8 @@ agent-remote 的管理 Web 前端。
 
 Runtime 控制包括节点 backend 允许列表、默认值、策略和能力检查，账户 backend 固定与显式迁移，以及 session backend/resource/replacement 展示。中断的 session 会显示为不可 attach，便于运维人员将其与可恢复的 active session 区分。
 
+`/app/forwards` 控制台页面为普通用户展示个人转发，为管理员展示全部范围。页面包含生命周期状态、所有者、session、Node、本地/远端端口、连接数、流量、过期时间和停止原因；活动转发可在确认后停止。Node 编辑页还提供转发开关、允许端口范围、TTL、stream、带宽和控制面宽限策略。UI 不会代理或渲染应用流量。
+
 ## 架构
 
 - React Router 将当前控制台页面保存在 `/app/:page`，支持刷新、前进和后退。

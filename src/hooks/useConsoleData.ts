@@ -8,6 +8,7 @@ import type {
   Device,
   NodeItem,
   NodeTask,
+  PortForward,
   SyncSession,
   ToolAccount,
   ToolAccountConfigImportStatus,
@@ -39,7 +40,13 @@ export function useConsoleData(
       resourceQuery<ToolSession>("tool-sessions", () => client.list<ToolSession>("/sessions"), shouldLoad(enabled, page, "tool-sessions", isAdmin), 5_000),
       resourceQuery<BrowserSession>("browser-sessions", () => client.list<BrowserSession>("/browser-sessions"), shouldLoad(enabled, page, "browser-sessions", isAdmin), 5_000),
       resourceQuery<AuditLog>("audit-logs", () => client.list<AuditLog>("/audit-logs"), shouldLoad(enabled, page, "audit-logs", isAdmin), 20_000),
-      resourceQuery<NodeTask>("node-tasks", () => client.list<NodeTask>("/nodes/tasks?limit=100"), shouldLoad(enabled, page, "node-tasks", isAdmin), 5_000)
+      resourceQuery<NodeTask>("node-tasks", () => client.list<NodeTask>("/nodes/tasks?limit=100"), shouldLoad(enabled, page, "node-tasks", isAdmin), 5_000),
+      resourceQuery<PortForward>(
+        isAdmin ? "port-forwards-all" : "port-forwards-mine",
+        () => client.list<PortForward>(isAdmin ? "/port-forwards?all_users=true" : "/port-forwards"),
+        shouldLoad(enabled, page, "port-forwards", isAdmin),
+        5_000
+      )
     ]
   });
 
@@ -60,6 +67,10 @@ export function useConsoleData(
     browserSessions: (results[9].data ?? EMPTY) as BrowserSession[],
     auditLogs: (results[10].data ?? EMPTY) as AuditLog[],
     nodeTasks: (results[11].data ?? EMPTY) as NodeTask[],
+    portForwards: (results[12].data ?? EMPTY) as PortForward[],
+    portForwardsLoading: results[12].isPending && results[12].fetchStatus !== "idle",
+    portForwardsError: results[12].isError,
+    portForwardsRefreshing: results[12].isFetching && !results[12].isPending,
     refreshing: results.some((result) => result.isFetching),
     error: results.find((result) => result.error)?.error ?? null,
     lastUpdatedAt: Math.max(0, ...results.map((result) => result.dataUpdatedAt)),
@@ -79,7 +90,8 @@ type ResourceName =
   | "tool-sessions"
   | "browser-sessions"
   | "audit-logs"
-  | "node-tasks";
+  | "node-tasks"
+  | "port-forwards";
 
 const pageResources: Record<Page, ResourceName[]> = {
   overview: ["users", "devices", "accounts", "nodes", "workspaces", "sync-sessions", "tool-sessions", "browser-sessions", "audit-logs", "node-tasks"],
@@ -88,6 +100,7 @@ const pageResources: Record<Page, ResourceName[]> = {
   accounts: ["accounts", "config-imports"],
   credentials: ["credential-profiles"],
   nodes: ["nodes", "node-tasks"],
+  forwards: ["port-forwards", "users", "nodes"],
   sessions: ["tool-sessions", "accounts", "workspaces"],
   sync: ["workspaces", "sync-sessions", "devices", "nodes"],
   browser: ["browser-sessions", "accounts"],

@@ -9,6 +9,7 @@ import type {
   NodeTask,
   Notice,
   Page,
+  PortForward,
   RunAction,
   SyncSession,
   ToolAccount,
@@ -32,6 +33,10 @@ export type ConsolePageProps = {
   me: User;
   nodes: NodeItem[];
   nodeTasks: NodeTask[];
+  portForwards: PortForward[];
+  portForwardsError: boolean;
+  portForwardsLoading: boolean;
+  portForwardsRefreshing: boolean;
   notice: Notice | null;
   page: Page;
   request: AppRequest;

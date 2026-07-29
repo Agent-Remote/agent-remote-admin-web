@@ -33,6 +33,20 @@ describe("NodesPage", () => {
     fireEvent.change(screen.getAllByLabelText("CPU quota (%)")[0], { target: { value: "250" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/nodes/node-1", expect.objectContaining({ method: "PATCH" })));
+    const updateCall = requestMock.mock.calls.find(([path]) => path === "/nodes/node-1");
+    const updateBody = JSON.parse(String(updateCall?.[1]?.body));
+    expect(updateBody.runtime_policy).toMatchObject({
+      cpu_quota_percent: 250,
+      port_forwarding: {
+        enabled: true,
+        min_port: 1024,
+        max_port: 65535,
+        max_per_session: 5,
+        max_streams: 128,
+        lease_seconds: 60,
+        control_plane_grace_seconds: 300
+      }
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Maintain" }));
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/nodes/node-1/maintenance", { method: "POST" }));

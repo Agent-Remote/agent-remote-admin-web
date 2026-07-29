@@ -51,4 +51,18 @@ describe("useConsoleData", () => {
       "/tool-accounts/config-imports/latest"
     ]);
   });
+
+  it("loads personal and administrator port-forward scopes separately", async () => {
+    const personal = setup("forwards", false);
+    await waitFor(() => expect(personal).toHaveBeenCalledTimes(1));
+    expect(personal).toHaveBeenCalledWith("/port-forwards");
+
+    const administrator = setup("forwards", true);
+    await waitFor(() => expect(administrator).toHaveBeenCalledTimes(3));
+    expect(administrator.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/nodes",
+      "/port-forwards?all_users=true",
+      "/users"
+    ]);
+  });
 });

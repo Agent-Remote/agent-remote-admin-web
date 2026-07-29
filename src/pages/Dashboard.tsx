@@ -12,6 +12,7 @@ const BrowserPage = lazy(() => import("./console/BrowserPage").then((module) => 
 const CredentialsPage = lazy(() => import("./console/CredentialsPage").then((module) => ({ default: module.CredentialsPage })));
 const DevicesPage = lazy(() => import("./console/DevicesPage").then((module) => ({ default: module.DevicesPage })));
 const NodesPage = lazy(() => import("./console/NodesPage").then((module) => ({ default: module.NodesPage })));
+const PortForwardsPage = lazy(() => import("./console/PortForwardsPage").then((module) => ({ default: module.PortForwardsPage })));
 const OverviewPage = lazy(() => import("./console/OverviewPage").then((module) => ({ default: module.OverviewPage })));
 const SessionsPage = lazy(() => import("./console/SessionsPage").then((module) => ({ default: module.SessionsPage })));
 const SettingsPage = lazy(() => import("./console/SettingsPage").then((module) => ({ default: module.SettingsPage })));
@@ -27,8 +28,8 @@ export function Dashboard(props: DashboardProps) {
   const visibleNavigation = navigationItems.filter((item) => !item.adminOnly || isAdmin);
   const title = navigationItems.find((item) => item.id === props.page)?.label ?? "nav.overview";
   const mobileIds: Page[] = isAdmin
-    ? ["overview", "nodes", "sessions", "audit"]
-    : ["overview", "accounts", "sessions", "browser"];
+    ? ["overview", "nodes", "sessions", "forwards"]
+    : ["overview", "accounts", "sessions", "forwards"];
   const mobileNavigation = visibleNavigation.filter((item) => mobileIds.includes(item.id));
   const failedTasks = props.nodeTasks.filter((task) => task.status === "failed");
 
@@ -140,6 +141,7 @@ export function Dashboard(props: DashboardProps) {
               {props.page === "accounts" ? <AccountsPage {...props} /> : null}
               {props.page === "credentials" ? <CredentialsPage {...props} /> : null}
               {props.page === "nodes" ? <NodesPage {...props} isAdmin={isAdmin} /> : null}
+              {props.page === "forwards" ? <PortForwardsPage {...props} isAdmin={isAdmin} /> : null}
               {props.page === "sessions" ? <SessionsPage {...props} /> : null}
               {props.page === "sync" ? <SyncPage {...props} /> : null}
               {props.page === "browser" ? <BrowserPage {...props} /> : null}

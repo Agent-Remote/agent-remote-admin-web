@@ -27,7 +27,9 @@ function renderPage() {
     accounts: [], apiBase: "http://localhost", auditLogs: [], browserSessions: [], busy: false,
     configImports: [], credentialProfiles: [profile], devices: [], loadAll: async () => undefined,
     logout: vi.fn(), me: { id: "user-1", username: "user", display_name: "User", role: "user", status: "active", totp_enabled: false, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
-    nodes: [], nodeTasks: [], notice: null, page: "credentials", request, runAction,
+    nodes: [], nodeTasks: [], portForwards: [], portForwardsError: false,
+    portForwardsLoading: false, portForwardsRefreshing: false,
+    notice: null, page: "credentials", request, runAction,
     setNotice: vi.fn(), setPage: vi.fn(), syncing: false, syncError: null, lastSyncedAt: 0,
     syncSessions: [], toolSessions: [], users: [], workspaces: []
   };

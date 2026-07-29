@@ -71,7 +71,8 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
             tasks_max: Number(form.get("tasks_max") ?? 512),
             limit_nofile: Number(form.get("limit_nofile") ?? 8192),
             tmpfs_size_bytes: Number(form.get("tmpfs_size_bytes") ?? 1073741824),
-            network_allowlist: splitList(String(form.get("network_allowlist") ?? ""))
+            network_allowlist: splitList(String(form.get("network_allowlist") ?? "")),
+            port_forwarding: readPortForwardingPolicy(form)
           },
           wireguard_ip: String(form.get("wireguard_ip") ?? "") || null,
           wireguard_endpoint: String(form.get("wireguard_endpoint") ?? "") || null,
@@ -99,13 +100,15 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
           allowed_runtime_backends: allowed,
           default_runtime_backend: String(form.get("default_runtime_backend") ?? node.default_runtime_backend),
           runtime_policy: {
+            ...node.runtime_policy,
             memory_high_bytes: Number(form.get("memory_high_bytes")),
             memory_max_bytes: Number(form.get("memory_max_bytes")),
             cpu_quota_percent: Number(form.get("cpu_quota_percent")),
             tasks_max: Number(form.get("tasks_max")),
             limit_nofile: Number(form.get("limit_nofile")),
             tmpfs_size_bytes: Number(form.get("tmpfs_size_bytes")),
-            network_allowlist: splitList(String(form.get("network_allowlist") ?? ""))
+            network_allowlist: splitList(String(form.get("network_allowlist") ?? "")),
+            port_forwarding: readPortForwardingPolicy(form)
           }
         })
       }).then(() => undefined),
@@ -219,6 +222,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
                   <Field name="limit_nofile" label={t("nodes.nofile")} type="number" defaultValue={policyNumber(node, "limit_nofile", 8192)} />
                   <Field name="tmpfs_size_bytes" label={t("nodes.tmpSize")} type="number" defaultValue={policyNumber(node, "tmpfs_size_bytes", 1073741824)} />
                   <Field name="network_allowlist" label={t("nodes.networkAllowlist")} defaultValue={policyList(node, "network_allowlist")} />
+                  <PortForwardPolicyFields node={node} />
                   <button className="primary" disabled={busy}>
                     <Save size={15} />
                     {t("common.save")}
@@ -253,6 +257,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
           <Field name="limit_nofile" label={t("nodes.nofile")} type="number" defaultValue={8192} />
           <Field name="tmpfs_size_bytes" label={t("nodes.tmpSize")} type="number" defaultValue={1073741824} />
           <Field name="network_allowlist" label={t("nodes.networkAllowlist")} />
+          <PortForwardPolicyFields />
           <Field name="wireguard_ip" label={t("nodes.wgIp")} />
           <Field name="wireguard_endpoint" label={t("nodes.wgEndpoint")} />
           <Field name="ssh_host" label={t("nodes.sshHost")} />
@@ -286,4 +291,76 @@ function policyNumber(node: NodeItem, key: string, fallback: number): number {
 function policyList(node: NodeItem, key: string): string {
   const value = node.runtime_policy[key];
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").join(",") : "";
+}
+
+function PortForwardPolicyFields({ node }: { node?: NodeItem }) {
+  const { t } = useI18n();
+  return (
+    <fieldset className="policy-group">
+      <legend>{t("nodes.portForwardPolicy")}</legend>
+      <CheckLine
+        name="pf_enabled"
+        label={t("nodes.portForwardEnabled")}
+        defaultChecked={nestedPolicyBoolean(node, "enabled", true)}
+      />
+      <div className="form-grid">
+        <Field name="pf_min_port" label={t("nodes.portForwardMinPort")} type="number" defaultValue={nestedPolicyNumber(node, "min_port", 1024)} />
+        <Field name="pf_max_port" label={t("nodes.portForwardMaxPort")} type="number" defaultValue={nestedPolicyNumber(node, "max_port", 65535)} />
+        <Field name="pf_denied_ports" label={t("nodes.portForwardDeniedPorts")} defaultValue={nestedPolicyList(node, "denied_ports")} />
+        <Field name="pf_max_per_user" label={t("nodes.portForwardMaxPerUser")} type="number" defaultValue={nestedPolicyNumber(node, "max_per_user", 10)} />
+        <Field name="pf_max_per_device" label={t("nodes.portForwardMaxPerDevice")} type="number" defaultValue={nestedPolicyNumber(node, "max_per_device", 10)} />
+        <Field name="pf_max_per_session" label={t("nodes.portForwardMaxPerSession")} type="number" defaultValue={nestedPolicyNumber(node, "max_per_session", 5)} />
+        <Field name="pf_max_streams" label={t("nodes.portForwardMaxStreams")} type="number" defaultValue={nestedPolicyNumber(node, "max_streams", 128)} />
+        <Field name="pf_default_ttl_seconds" label={t("nodes.portForwardDefaultTtl")} type="number" defaultValue={nestedPolicyNumber(node, "default_ttl_seconds", 28800)} />
+        <Field name="pf_max_ttl_seconds" label={t("nodes.portForwardMaxTtl")} type="number" defaultValue={nestedPolicyNumber(node, "max_ttl_seconds", 86400)} />
+        <Field name="pf_lease_seconds" label={t("nodes.portForwardLease")} type="number" defaultValue={nestedPolicyNumber(node, "lease_seconds", 60)} />
+        <Field name="pf_control_plane_grace_seconds" label={t("nodes.portForwardGrace")} type="number" defaultValue={nestedPolicyNumber(node, "control_plane_grace_seconds", 300)} />
+        <Field name="pf_bytes_per_second" label={t("nodes.portForwardBandwidth")} type="number" defaultValue={nestedPolicyNumber(node, "bytes_per_second", 0)} />
+      </div>
+    </fieldset>
+  );
+}
+
+function readPortForwardingPolicy(form: FormData): Record<string, boolean | number | number[]> {
+  return {
+    enabled: form.get("pf_enabled") === "on",
+    min_port: Number(form.get("pf_min_port")),
+    max_port: Number(form.get("pf_max_port")),
+    denied_ports: splitList(String(form.get("pf_denied_ports") ?? ""))
+      .map(Number)
+      .filter((port) => Number.isInteger(port) && port >= 1 && port <= 65535),
+    max_per_user: Number(form.get("pf_max_per_user")),
+    max_per_device: Number(form.get("pf_max_per_device")),
+    max_per_session: Number(form.get("pf_max_per_session")),
+    max_streams: Number(form.get("pf_max_streams")),
+    default_ttl_seconds: Number(form.get("pf_default_ttl_seconds")),
+    max_ttl_seconds: Number(form.get("pf_max_ttl_seconds")),
+    lease_seconds: Number(form.get("pf_lease_seconds")),
+    control_plane_grace_seconds: Number(form.get("pf_control_plane_grace_seconds")),
+    bytes_per_second: Number(form.get("pf_bytes_per_second"))
+  };
+}
+
+function portForwardPolicy(node?: NodeItem): Record<string, unknown> {
+  const value = node?.runtime_policy.port_forwarding;
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function nestedPolicyNumber(node: NodeItem | undefined, key: string, fallback: number): number {
+  const value = portForwardPolicy(node)[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function nestedPolicyBoolean(node: NodeItem | undefined, key: string, fallback: boolean): boolean {
+  const value = portForwardPolicy(node)[key];
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function nestedPolicyList(node: NodeItem | undefined, key: string): string {
+  const value = portForwardPolicy(node)[key];
+  return Array.isArray(value)
+    ? value.filter((item): item is number => typeof item === "number").join(",")
+    : "";
 }

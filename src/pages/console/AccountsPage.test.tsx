@@ -15,7 +15,9 @@ describe("AccountsPage", () => {
       configImports: [{ tool_account_id: "account-1", task_id: "import-1", status: "succeeded", include_resume_history: false, requested_paths: ["~/.claude/settings.json"], files_written: ["~/.claude/settings.json"], file_count: 1, error: null, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:01Z", finished_at: "2026-01-01T00:00:01Z" }],
       credentialProfiles: [], devices: [], loadAll: async () => undefined, logout: vi.fn(),
       me: { id: "user-1", username: "user", display_name: "User", role: "user", status: "active", totp_enabled: false, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
-      nodes: [], nodeTasks: [], notice: null, page: "accounts", request: vi.fn(), runAction: vi.fn(),
+      nodes: [], nodeTasks: [], portForwards: [], portForwardsError: false,
+      portForwardsLoading: false, portForwardsRefreshing: false,
+      notice: null, page: "accounts", request: vi.fn(), runAction: vi.fn(),
       setNotice: vi.fn(), setPage: vi.fn(), syncing: false, syncError: null, lastSyncedAt: 0,
       syncSessions: [], toolSessions: [], users: [], workspaces: []
     } satisfies ConsolePageProps;

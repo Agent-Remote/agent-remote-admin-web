@@ -101,6 +101,28 @@ export type NodeItem = {
   updated_at: string;
 };
 
+export type PortForward = {
+  id: UUID;
+  user_id: UUID;
+  device_id: UUID;
+  session_id: UUID;
+  node_id: UUID;
+  remote_port: number;
+  requested_local_port: number;
+  client_instance_id: string;
+  status: string;
+  bytes_up: number;
+  bytes_down: number;
+  connection_count: number;
+  last_connected_at: string | null;
+  lease_expires_at: string | null;
+  expires_at: string;
+  stopped_at: string | null;
+  stop_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Workspace = {
   id: UUID;
   user_id: UUID;
@@ -217,6 +239,7 @@ export type Page =
   | "accounts"
   | "credentials"
   | "nodes"
+  | "forwards"
   | "sessions"
   | "sync"
   | "browser"

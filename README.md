@@ -18,6 +18,8 @@ The frontend stack uses TypeScript, React, Vite, and lucide-react. It provides t
 
 Runtime controls include node backend allowlists/defaults/policy and capability inspection, account backend pinning and explicit migration, plus session backend/resource/replacement visibility. Interrupted sessions are shown as non-attachable so operators can distinguish them from recoverable active sessions.
 
+The `/app/forwards` console page lists personal forwards for users and the full scope for administrators. It shows lifecycle status, owner, session, node, local/remote ports, connections, traffic, expiration, and stop reason; active forwards can be stopped with confirmation. Node editing also exposes the forwarding enable switch, allowed port range, TTL, stream, bandwidth, and control-plane grace policy. The UI never proxies or renders application traffic.
+
 ## Architecture
 
 - React Router keeps the active console page in `/app/:page`, including refresh, back, and forward navigation.
