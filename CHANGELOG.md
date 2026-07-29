@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.5-fix.3 - 2026-07-29
+
+- feat: expand console visibility and coverage (fc36550)
+- ci: add codecov reporting (4c3323e)
+
 ## v0.0.5-fix.2 - 2026-07-28
 
 - feat: add session deletion controls (103d7cd)
