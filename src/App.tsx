@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiClient, defaultApiBase } from "./api/client";
 import { ConfirmProvider } from "./app/ConfirmProvider";
+import { useBrowserPath } from "./app/browserPath";
 import { isPage } from "./app/navigation";
 import { BrandMark } from "./components/ui";
 import { useConsoleData } from "./hooks/useConsoleData";
@@ -16,7 +16,7 @@ import { errorText } from "./utils/format";
 
 function AppInner() {
   const { t } = useI18n();
-  const location = useLocation();
+  const [pathname, navigate] = useBrowserPath();
   const queryClient = useQueryClient();
   const apiBase = defaultApiBase;
   const developmentToken = import.meta.env.DEV
@@ -49,8 +49,8 @@ function AppInner() {
     retry: 2,
     staleTime: 0
   });
-  const pathPage = location.pathname.startsWith("/app/")
-    ? location.pathname.split("/")[2]
+  const pathPage = pathname.startsWith("/app/")
+    ? pathname.split("/")[2]
     : undefined;
   const activePage = isPage(pathPage) ? pathPage : null;
   const data = useConsoleData(
@@ -59,6 +59,11 @@ function AppInner() {
     activePage,
     meQuery.data?.role === "admin"
   );
+
+  useEffect(() => {
+    if (!token || !meQuery.data || pathname === "/cli" || activePage) return;
+    navigate("/app/overview", true);
+  }, [activePage, meQuery.data, navigate, pathname, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -179,50 +184,26 @@ function AppInner() {
     );
   }
 
-  return (
-    <Routes>
-      <Route path="/cli" element={<CliApprovalPage request={request} />} />
-      <Route
-        path="/app/:page"
-        element={
-          <ConsoleRoute
-            {...data}
-            apiBase={apiBase}
-            busy={actionBusy}
-            syncing={data.refreshing}
-            syncError={data.error instanceof Error ? data.error.message : data.error ? String(data.error) : null}
-            lastSyncedAt={data.lastUpdatedAt}
-            logout={logout}
-            me={meQuery.data}
-            notice={notice}
-            request={request}
-            runAction={runAction}
-            setNotice={setNotice}
-          />
-        }
-      />
-      <Route path="*" element={<Navigate replace to="/app/overview" />} />
-    </Routes>
-  );
-}
-
-type ConsoleRouteProps = Omit<React.ComponentProps<typeof Dashboard>, "page" | "setPage" | "loadAll"> & {
-  refresh: () => Promise<void>;
-};
-
-function ConsoleRoute({ refresh, ...props }: ConsoleRouteProps) {
-  const { page } = useParams();
-  const navigate = useNavigate();
-
-  if (!isPage(page)) {
-    return <Navigate replace to="/app/overview" />;
+  if (pathname === "/cli") {
+    return <CliApprovalPage request={request} />;
   }
 
   return (
     <Dashboard
-      {...props}
-      loadAll={refresh}
-      page={page}
+      {...data}
+      apiBase={apiBase}
+      busy={actionBusy}
+      syncing={data.refreshing}
+      syncError={data.error instanceof Error ? data.error.message : data.error ? String(data.error) : null}
+      lastSyncedAt={data.lastUpdatedAt}
+      loadAll={data.refresh}
+      logout={logout}
+      me={meQuery.data}
+      notice={notice}
+      page={activePage ?? "overview"}
+      request={request}
+      runAction={runAction}
+      setNotice={setNotice}
       setPage={(nextPage: Page) => navigate(`/app/${nextPage}`)}
     />
   );
