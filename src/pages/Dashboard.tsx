@@ -9,6 +9,7 @@ import type { ConsolePageProps } from "./console/types";
 const AccountsPage = lazy(() => import("./console/AccountsPage").then((module) => ({ default: module.AccountsPage })));
 const AuditPage = lazy(() => import("./console/AuditPage").then((module) => ({ default: module.AuditPage })));
 const BrowserPage = lazy(() => import("./console/BrowserPage").then((module) => ({ default: module.BrowserPage })));
+const CredentialsPage = lazy(() => import("./console/CredentialsPage").then((module) => ({ default: module.CredentialsPage })));
 const DevicesPage = lazy(() => import("./console/DevicesPage").then((module) => ({ default: module.DevicesPage })));
 const NodesPage = lazy(() => import("./console/NodesPage").then((module) => ({ default: module.NodesPage })));
 const OverviewPage = lazy(() => import("./console/OverviewPage").then((module) => ({ default: module.OverviewPage })));
@@ -137,6 +138,7 @@ export function Dashboard(props: DashboardProps) {
               {props.page === "users" ? <UsersPage {...props} isAdmin={isAdmin} /> : null}
               {props.page === "devices" ? <DevicesPage {...props} /> : null}
               {props.page === "accounts" ? <AccountsPage {...props} /> : null}
+              {props.page === "credentials" ? <CredentialsPage {...props} /> : null}
               {props.page === "nodes" ? <NodesPage {...props} isAdmin={isAdmin} /> : null}
               {props.page === "sessions" ? <SessionsPage {...props} /> : null}
               {props.page === "sync" ? <SyncPage {...props} /> : null}

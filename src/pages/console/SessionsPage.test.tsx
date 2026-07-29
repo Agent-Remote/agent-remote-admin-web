@@ -28,12 +28,16 @@ function session(id: string, status: string): ToolSession {
   };
 }
 
-function renderPage(toolSessions: ToolSession[]) {
+function renderPage(
+  toolSessions: ToolSession[],
+  overrides: Partial<ConsolePageProps> = {},
+  responseFor?: (path: string) => unknown
+) {
   localStorage.setItem("agentRemoteLocale", "en");
   const requestMock = vi.fn();
   const request: AppRequest = (path, options) => {
     requestMock(path, options);
-    return Promise.resolve(undefined as never);
+    return Promise.resolve(responseFor?.(path) as never);
   };
   const runAction = vi.fn(async (action: () => Promise<void>) => action());
   const props: ConsolePageProps = {
@@ -42,6 +46,8 @@ function renderPage(toolSessions: ToolSession[]) {
     auditLogs: [],
     browserSessions: [],
     busy: false,
+    configImports: [],
+    credentialProfiles: [],
     devices: [],
     loadAll: async () => undefined,
     logout: vi.fn(),
@@ -69,7 +75,8 @@ function renderPage(toolSessions: ToolSession[]) {
     syncSessions: [],
     toolSessions,
     users: [],
-    workspaces: []
+    workspaces: [],
+    ...overrides
   };
 
   render(
@@ -79,7 +86,7 @@ function renderPage(toolSessions: ToolSession[]) {
       </ConfirmProvider>
     </I18nProvider>
   );
-  return { request: requestMock };
+  return { props, request: requestMock };
 }
 
 describe("SessionsPage", () => {
@@ -103,5 +110,38 @@ describe("SessionsPage", () => {
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith("/sessions", { method: "DELETE" });
     });
+  });
+
+  it("creates, attaches to, and confirms stopping a running session", async () => {
+    const running = session("running", "running");
+    const { props, request } = renderPage(
+      [running],
+      {
+        accounts: [{
+          id: "account-1", user_id: "user-1", tool_type: "claude", display_name: "Claude", status: "active",
+          region_code: "US", timezone: "UTC", locale: "en_US.UTF-8", preferred_node_tags: [],
+          affinity_node_id: null, runtime_backend: "native", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z"
+        }],
+        workspaces: [{
+          id: "workspace-1", user_id: "user-1", device_id: "device-1", project_key: "agent-remote",
+          local_start_path: "/src", display_name: "Workspace", remote_path: null, sync_git: true,
+          git_sync_policy: { exclude_hooks: true, exclude_locks: true, require_clean_git_lock: true, warn_concurrent_git: true },
+          created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z"
+        }]
+      },
+      (path) => path.endsWith("/attach") ? { data: { ssh_command: "ssh node-1" } } : undefined
+    );
+
+    fireEvent.change(screen.getByLabelText("Account"), { target: { value: "account-1" } });
+    fireEvent.change(screen.getByLabelText("Args"), { target: { value: "--resume latest" } });
+    fireEvent.submit(screen.getByLabelText("Args").closest("form")!);
+    await waitFor(() => expect(request).toHaveBeenCalledWith("/sessions", expect.objectContaining({ method: "POST" })));
+
+    fireEvent.click(screen.getByRole("button", { name: "Attach" }));
+    await waitFor(() => expect(request).toHaveBeenCalledWith("/sessions/running/attach", { method: "POST" }));
+    expect(props.setNotice).toHaveBeenCalledWith({ kind: "info", message: "ssh node-1" });
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(request).toHaveBeenCalledWith("/sessions/running/stop", { method: "POST" }));
   });
 });

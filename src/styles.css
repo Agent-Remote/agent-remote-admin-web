@@ -432,6 +432,12 @@ p {
   align-items: start;
 }
 
+.panel-column {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
 .auth-grid {
   display: grid;
 }

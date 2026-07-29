@@ -23,7 +23,8 @@ export function UsersPage({ users, isAdmin, busy, request, runAction }: ConsoleP
   const confirmAction = useConfirm();
   async function createUser(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/users", {
@@ -37,7 +38,7 @@ export function UsersPage({ users, isAdmin, busy, request, runAction }: ConsoleP
         }).then(() => undefined),
       t("users.created")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (

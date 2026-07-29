@@ -35,7 +35,8 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
 
   async function createSession(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/sessions", {
@@ -50,7 +51,7 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
         }).then(() => undefined),
       t("sessions.created")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (

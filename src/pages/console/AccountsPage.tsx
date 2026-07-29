@@ -1,6 +1,7 @@
 import {
   Ban,
   CheckCircle2,
+  FileInput,
   KeyRound,
   Play,
   RotateCcw,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import {
+  DetailRow,
   EmptyBlock,
   Field,
   PanelTitle,
@@ -19,14 +21,15 @@ import {
 import { useConfirm } from "../../app/ConfirmProvider";
 import { useI18n } from "../../i18n/I18nProvider";
 import type { ApiResponse } from "../../types";
-import { splitList } from "../../utils/format";
+import { formatDate, splitList } from "../../utils/format";
 import type { ConsolePageProps } from "./types";
-export function AccountsPage({ accounts, busy, request, runAction, setNotice, me }: ConsolePageProps) {
+export function AccountsPage({ accounts, busy, configImports, request, runAction, setNotice, me }: ConsolePageProps) {
   const { t } = useI18n();
   const confirmAction = useConfirm();
   async function createAccount(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/tool-accounts", {
@@ -42,21 +45,22 @@ export function AccountsPage({ accounts, busy, request, runAction, setNotice, me
         }).then(() => undefined),
       t("accounts.created")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (
     <div className="two-column">
-      <section className="panel">
-        <PanelTitle icon={KeyRound} title={t("accounts.title")} />
-        {accounts.length === 0 ? <EmptyBlock label={t("common.empty")} /> : null}
-        {accounts.map((account) => (
-          <ResourceRow
-            key={account.id}
-            title={account.display_name}
-            meta={`${account.tool_type} · ${account.region_code} · ${account.timezone} · ${account.runtime_backend ?? "not pinned"}`}
-            actions={
-              <>
+      <div className="panel-column">
+        <section className="panel">
+          <PanelTitle icon={KeyRound} title={t("accounts.title")} />
+          {accounts.length === 0 ? <EmptyBlock label={t("common.empty")} /> : null}
+          {accounts.map((account) => (
+            <ResourceRow
+              key={account.id}
+              title={account.display_name}
+              meta={`${account.tool_type} · ${account.region_code} · ${account.timezone} · ${account.runtime_backend ?? "not pinned"}`}
+              actions={
+                <>
                 <StatusPill status={account.status} />
                 {me.role === "admin" && account.runtime_backend ? (
                   <button
@@ -144,11 +148,37 @@ export function AccountsPage({ accounts, busy, request, runAction, setNotice, me
                   <Trash2 size={15} />
                   {t("common.delete")}
                 </button>
-              </>
-            }
-          />
-        ))}
-      </section>
+                </>
+              }
+            />
+          ))}
+        </section>
+        <section className="panel">
+          <PanelTitle icon={FileInput} title={t("accounts.configImports")} />
+          {configImports.length === 0 ? <EmptyBlock label={t("accounts.noConfigImports")} /> : null}
+          {configImports.map((item) => {
+            const account = accounts.find((candidate) => candidate.id === item.tool_account_id);
+            return (
+              <DetailRow
+                key={item.task_id}
+                title={account?.display_name ?? item.tool_account_id}
+                status={item.status}
+                meta={t("accounts.importSummary", {
+                  count: item.file_count,
+                  time: formatDate(item.finished_at ?? item.updated_at)
+                })}
+                value={{
+                  [t("accounts.requestedPaths")]: item.requested_paths,
+                  [t("accounts.filesWritten")]: item.files_written,
+                  [t("accounts.resumeHistory")]: item.include_resume_history,
+                  [t("accounts.importError")]: item.error,
+                  [t("accounts.taskId")]: item.task_id
+                }}
+              />
+            );
+          })}
+        </section>
+      </div>
       <ResponsiveForm
         closeLabel={t("common.dismiss")}
         icon={KeyRound}

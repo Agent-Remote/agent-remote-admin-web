@@ -14,7 +14,7 @@
 
 agent-remote 的管理 Web 前端。
 
-前端技术栈使用 TypeScript、React、Vite 和 lucide-react。它提供管理控制台，用于用户、设备、工具账户、节点、session、同步、远端浏览器会话、审计日志和本地控制台设置。
+前端技术栈使用 TypeScript、React、Vite 和 lucide-react。它提供管理控制台，用于用户、设备、工具账户、开发凭据 Profile、节点、session、同步、远端浏览器会话、审计日志和本地控制台设置。工具账户页还会展示最近一次 Claude 配置导入的安全摘要，不暴露上传文件内容。
 
 Runtime 控制包括节点 backend 允许列表、默认值、策略和能力检查，账户 backend 固定与显式迁移，以及 session backend/resource/replacement 展示。中断的 session 会显示为不可 attach，便于运维人员将其与可恢复的 active session 区分。
 

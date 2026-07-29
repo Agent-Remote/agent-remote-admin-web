@@ -47,7 +47,8 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
 
   async function createNode(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const allowedRuntimeBackends = [
       form.get("allow_docker") === "on" ? "docker_sandbox" : null,
       form.get("allow_native") === "on" ? "native" : null
@@ -81,7 +82,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
       });
       showRegistrationCredentials(response.data);
     });
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   async function updateRuntimePolicy(event: React.FormEvent<HTMLFormElement>, node: NodeItem) {

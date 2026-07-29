@@ -10,7 +10,13 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/vite-env.d.ts"]
+      exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/vite-env.d.ts"],
+      thresholds: {
+        statements: 70,
+        branches: 55,
+        functions: 72,
+        lines: 72
+      }
     }
   }
 });

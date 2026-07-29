@@ -4,11 +4,13 @@ import type { ApiClient } from "../api/client";
 import type {
   AuditLog,
   BrowserSession,
+  DeveloperCredentialProfile,
   Device,
   NodeItem,
   NodeTask,
   SyncSession,
   ToolAccount,
+  ToolAccountConfigImportStatus,
   ToolSession,
   User,
   Workspace,
@@ -29,6 +31,8 @@ export function useConsoleData(
       resourceQuery<User>("users", () => client.list<User>("/users"), shouldLoad(enabled, page, "users", isAdmin), 60_000),
       resourceQuery<Device>("devices", () => client.list<Device>("/devices"), shouldLoad(enabled, page, "devices", isAdmin), 15_000),
       resourceQuery<ToolAccount>("accounts", () => client.list<ToolAccount>("/tool-accounts"), shouldLoad(enabled, page, "accounts", isAdmin), 30_000),
+      resourceQuery<DeveloperCredentialProfile>("credential-profiles", () => client.list<DeveloperCredentialProfile>("/developer-credential-profiles"), shouldLoad(enabled, page, "credential-profiles", isAdmin), 30_000),
+      resourceQuery<ToolAccountConfigImportStatus>("config-imports", () => client.list<ToolAccountConfigImportStatus>("/tool-accounts/config-imports/latest"), shouldLoad(enabled, page, "config-imports", isAdmin), 5_000),
       resourceQuery<NodeItem>("nodes", () => client.list<NodeItem>("/nodes"), shouldLoad(enabled, page, "nodes", isAdmin), 10_000),
       resourceQuery<Workspace>("workspaces", () => client.list<Workspace>("/workspaces"), shouldLoad(enabled, page, "workspaces", isAdmin), 30_000),
       resourceQuery<SyncSession>("sync-sessions", () => client.list<SyncSession>("/sync-sessions"), shouldLoad(enabled, page, "sync-sessions", isAdmin), 7_500),
@@ -47,13 +51,15 @@ export function useConsoleData(
     users: (results[0].data ?? EMPTY) as User[],
     devices: (results[1].data ?? EMPTY) as Device[],
     accounts: (results[2].data ?? EMPTY) as ToolAccount[],
-    nodes: (results[3].data ?? EMPTY) as NodeItem[],
-    workspaces: (results[4].data ?? EMPTY) as Workspace[],
-    syncSessions: (results[5].data ?? EMPTY) as SyncSession[],
-    toolSessions: (results[6].data ?? EMPTY) as ToolSession[],
-    browserSessions: (results[7].data ?? EMPTY) as BrowserSession[],
-    auditLogs: (results[8].data ?? EMPTY) as AuditLog[],
-    nodeTasks: (results[9].data ?? EMPTY) as NodeTask[],
+    credentialProfiles: (results[3].data ?? EMPTY) as DeveloperCredentialProfile[],
+    configImports: (results[4].data ?? EMPTY) as ToolAccountConfigImportStatus[],
+    nodes: (results[5].data ?? EMPTY) as NodeItem[],
+    workspaces: (results[6].data ?? EMPTY) as Workspace[],
+    syncSessions: (results[7].data ?? EMPTY) as SyncSession[],
+    toolSessions: (results[8].data ?? EMPTY) as ToolSession[],
+    browserSessions: (results[9].data ?? EMPTY) as BrowserSession[],
+    auditLogs: (results[10].data ?? EMPTY) as AuditLog[],
+    nodeTasks: (results[11].data ?? EMPTY) as NodeTask[],
     refreshing: results.some((result) => result.isFetching),
     error: results.find((result) => result.error)?.error ?? null,
     lastUpdatedAt: Math.max(0, ...results.map((result) => result.dataUpdatedAt)),
@@ -65,6 +71,8 @@ type ResourceName =
   | "users"
   | "devices"
   | "accounts"
+  | "credential-profiles"
+  | "config-imports"
   | "nodes"
   | "workspaces"
   | "sync-sessions"
@@ -77,7 +85,8 @@ const pageResources: Record<Page, ResourceName[]> = {
   overview: ["users", "devices", "accounts", "nodes", "workspaces", "sync-sessions", "tool-sessions", "browser-sessions", "audit-logs", "node-tasks"],
   users: ["users"],
   devices: ["devices"],
-  accounts: ["accounts"],
+  accounts: ["accounts", "config-imports"],
+  credentials: ["credential-profiles"],
   nodes: ["nodes", "node-tasks"],
   sessions: ["tool-sessions", "accounts", "workspaces"],
   sync: ["workspaces", "sync-sessions", "devices", "nodes"],

@@ -3,6 +3,7 @@ import type {
   AppRequest,
   AuditLog,
   BrowserSession,
+  DeveloperCredentialProfile,
   Device,
   NodeItem,
   NodeTask,
@@ -11,6 +12,7 @@ import type {
   RunAction,
   SyncSession,
   ToolAccount,
+  ToolAccountConfigImportStatus,
   ToolSession,
   User,
   Workspace
@@ -21,6 +23,8 @@ export type ConsolePageProps = {
   apiBase: string;
   auditLogs: AuditLog[];
   browserSessions: BrowserSession[];
+  credentialProfiles: DeveloperCredentialProfile[];
+  configImports: ToolAccountConfigImportStatus[];
   busy: boolean;
   devices: Device[];
   loadAll: () => Promise<void>;

@@ -3,9 +3,10 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type React from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { ApiClient } from "../api/client";
+import type { Page } from "../types";
 import { useConsoleData } from "./useConsoleData";
 
-function setup(page: "overview" | "sessions", isAdmin: boolean) {
+function setup(page: Page, isAdmin: boolean) {
   const list = vi.fn().mockResolvedValue([]);
   const client = { list } as unknown as ApiClient;
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -34,5 +35,20 @@ describe("useConsoleData", () => {
     expect(paths).not.toContain("/users");
     expect(paths).not.toContain("/nodes");
     expect(paths).not.toContain("/nodes/tasks?limit=100");
+  });
+
+  it("loads credential profiles only on the credential page", async () => {
+    const list = setup("credentials", false);
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(1));
+    expect(list).toHaveBeenCalledWith("/developer-credential-profiles");
+  });
+
+  it("loads safe import summaries with tool accounts", async () => {
+    const list = setup("accounts", false);
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+    expect(list.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/tool-accounts",
+      "/tool-accounts/config-imports/latest"
+    ]);
   });
 });

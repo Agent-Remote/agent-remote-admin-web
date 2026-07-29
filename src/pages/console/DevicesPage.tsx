@@ -25,7 +25,8 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
   const confirmAction = useConfirm();
   async function registerDevice(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(async () => {
       const response = await request<ApiResponse<{ device_token: { access_token: string } }>>("/devices/register", {
         method: "POST",
@@ -38,7 +39,7 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
       });
       setNotice({ kind: "info", message: t("devices.token", { token: response.data.device_token.access_token }) });
     });
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (
@@ -50,7 +51,7 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
           <ResourceRow
             key={device.id}
             title={device.name}
-            meta={`${device.platform} · ${t("devices.lastSeen", { time: formatDate(device.last_seen_at) })}`}
+            meta={`${device.platform} · ${t("devices.cliVersion", { version: device.cli_version ?? t("common.unknown") })} · ${t("devices.lastSeen", { time: formatDate(device.last_seen_at) })}`}
             actions={
               <>
                 <StatusPill status={device.status} />

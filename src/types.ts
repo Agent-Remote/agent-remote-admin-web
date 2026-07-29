@@ -26,6 +26,7 @@ export type Device = {
   user_id: UUID;
   name: string;
   platform: string;
+  cli_version: string | null;
   status: string;
   last_seen_at: string | null;
   created_at: string;
@@ -45,6 +46,35 @@ export type ToolAccount = {
   runtime_backend: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type DeveloperCredentialProfile = {
+  id: UUID;
+  user_id: UUID;
+  display_name: string;
+  status: string;
+  git_identity: {
+    user_name?: string;
+    user_email?: string;
+  };
+  github_cli_mode: string;
+  ssh_mode: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ToolAccountConfigImportStatus = {
+  tool_account_id: UUID;
+  task_id: string;
+  status: string;
+  include_resume_history: boolean;
+  requested_paths: string[];
+  files_written: string[];
+  file_count: number;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  finished_at: string | null;
 };
 
 export type NodeItem = {
@@ -185,6 +215,7 @@ export type Page =
   | "users"
   | "devices"
   | "accounts"
+  | "credentials"
   | "nodes"
   | "sessions"
   | "sync"

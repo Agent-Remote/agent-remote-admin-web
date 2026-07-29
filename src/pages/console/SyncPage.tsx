@@ -32,7 +32,8 @@ export function SyncPage({ workspaces, syncSessions, devices, nodes, busy, reque
 
   async function createWorkspace(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/workspaces", {
@@ -53,12 +54,13 @@ export function SyncPage({ workspaces, syncSessions, devices, nodes, busy, reque
         }).then(() => undefined),
       t("sync.workspaceCreated")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   async function createSync(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/sync-sessions", {
@@ -83,7 +85,7 @@ export function SyncPage({ workspaces, syncSessions, devices, nodes, busy, reque
         }).then(() => undefined),
       t("sync.created")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (
@@ -235,7 +237,7 @@ export function SyncPage({ workspaces, syncSessions, devices, nodes, busy, reque
                         type="button"
                       >
                         <RotateCcw size={15} />
-                        {t("sync.reset")}
+                        {t("sync.resetAction")}
                       </button>
                       <button
                         disabled={busy}

@@ -33,7 +33,8 @@ export function BrowserPage({ browserSessions, accounts, busy, apiBase, request,
 
   async function createBrowser(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await runAction(
       () =>
         request("/browser-sessions", {
@@ -49,7 +50,7 @@ export function BrowserPage({ browserSessions, accounts, busy, apiBase, request,
         }).then(() => undefined),
       t("browser.created")
     );
-    event.currentTarget.reset();
+    formElement.reset();
   }
 
   return (
