@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.0.6 - 2026-07-29
+
+- feat: add port forwarding administration (eac0891)
+
 ## v0.0.5-fix.3 - 2026-07-29
 
 - feat: expand console visibility and coverage (fc36550)
