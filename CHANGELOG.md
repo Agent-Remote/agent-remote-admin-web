@@ -2,6 +2,12 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.1.3 - 2026-07-31
+
+- fix: commit prepared release script (f27af54)
+- feat: add device control administration (fc6c64d)
+- test: cover top-level application routing (382a910)
+
 ## v0.1.0 - 2026-07-31
 
 - feat: add device control status and session management to the console
