@@ -49,6 +49,13 @@ function renderPage(
     configImports: [],
     credentialProfiles: [],
     devices: [],
+    deviceSessions: [],
+    deviceSessionsError: false,
+    deviceSessionsLoading: false,
+    deviceSessionsRefreshing: false,
+    deviceControlPolicy: undefined,
+    deviceControlPolicyError: false,
+    deviceControlPolicyLoading: false,
     loadAll: async () => undefined,
     logout: vi.fn(),
     me: {

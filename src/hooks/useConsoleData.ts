@@ -6,6 +6,8 @@ import type {
   BrowserSession,
   DeveloperCredentialProfile,
   Device,
+  DeviceControlPolicy,
+  DeviceSession,
   NodeItem,
   NodeTask,
   PortForward,
@@ -17,6 +19,7 @@ import type {
   Workspace,
   Page
 } from "../types";
+import type { ApiResponse } from "../types";
 
 const EMPTY: never[] = [];
 
@@ -31,6 +34,18 @@ export function useConsoleData(
     queries: [
       resourceQuery<User>("users", () => client.list<User>("/users"), shouldLoad(enabled, page, "users", isAdmin), 60_000),
       resourceQuery<Device>("devices", () => client.list<Device>("/devices"), shouldLoad(enabled, page, "devices", isAdmin), 15_000),
+      resourceQuery<DeviceSession>(
+        isAdmin ? "device-sessions-all" : "device-sessions-mine",
+        () => client.list<DeviceSession>(isAdmin ? "/device-sessions?all_users=true" : "/device-sessions"),
+        shouldLoad(enabled, page, "device-sessions", isAdmin),
+        5_000
+      ),
+      valueQuery<DeviceControlPolicy>(
+        "device-control-policy",
+        async () => (await client.request<ApiResponse<DeviceControlPolicy>>("/device-sessions/policy")).data,
+        shouldLoad(enabled, page, "device-control-policy", isAdmin),
+        30_000
+      ),
       resourceQuery<ToolAccount>("accounts", () => client.list<ToolAccount>("/tool-accounts"), shouldLoad(enabled, page, "accounts", isAdmin), 30_000),
       resourceQuery<DeveloperCredentialProfile>("credential-profiles", () => client.list<DeveloperCredentialProfile>("/developer-credential-profiles"), shouldLoad(enabled, page, "credential-profiles", isAdmin), 30_000),
       resourceQuery<ToolAccountConfigImportStatus>("config-imports", () => client.list<ToolAccountConfigImportStatus>("/tool-accounts/config-imports/latest"), shouldLoad(enabled, page, "config-imports", isAdmin), 5_000),
@@ -57,20 +72,27 @@ export function useConsoleData(
   return {
     users: (results[0].data ?? EMPTY) as User[],
     devices: (results[1].data ?? EMPTY) as Device[],
-    accounts: (results[2].data ?? EMPTY) as ToolAccount[],
-    credentialProfiles: (results[3].data ?? EMPTY) as DeveloperCredentialProfile[],
-    configImports: (results[4].data ?? EMPTY) as ToolAccountConfigImportStatus[],
-    nodes: (results[5].data ?? EMPTY) as NodeItem[],
-    workspaces: (results[6].data ?? EMPTY) as Workspace[],
-    syncSessions: (results[7].data ?? EMPTY) as SyncSession[],
-    toolSessions: (results[8].data ?? EMPTY) as ToolSession[],
-    browserSessions: (results[9].data ?? EMPTY) as BrowserSession[],
-    auditLogs: (results[10].data ?? EMPTY) as AuditLog[],
-    nodeTasks: (results[11].data ?? EMPTY) as NodeTask[],
-    portForwards: (results[12].data ?? EMPTY) as PortForward[],
-    portForwardsLoading: results[12].isPending && results[12].fetchStatus !== "idle",
-    portForwardsError: results[12].isError,
-    portForwardsRefreshing: results[12].isFetching && !results[12].isPending,
+    deviceSessions: (results[2].data ?? EMPTY) as DeviceSession[],
+    deviceSessionsLoading: results[2].isPending && results[2].fetchStatus !== "idle",
+    deviceSessionsError: results[2].isError,
+    deviceSessionsRefreshing: results[2].isFetching && !results[2].isPending,
+    deviceControlPolicy: results[3].data as DeviceControlPolicy | undefined,
+    deviceControlPolicyError: results[3].isError,
+    deviceControlPolicyLoading: results[3].isPending && results[3].fetchStatus !== "idle",
+    accounts: (results[4].data ?? EMPTY) as ToolAccount[],
+    credentialProfiles: (results[5].data ?? EMPTY) as DeveloperCredentialProfile[],
+    configImports: (results[6].data ?? EMPTY) as ToolAccountConfigImportStatus[],
+    nodes: (results[7].data ?? EMPTY) as NodeItem[],
+    workspaces: (results[8].data ?? EMPTY) as Workspace[],
+    syncSessions: (results[9].data ?? EMPTY) as SyncSession[],
+    toolSessions: (results[10].data ?? EMPTY) as ToolSession[],
+    browserSessions: (results[11].data ?? EMPTY) as BrowserSession[],
+    auditLogs: (results[12].data ?? EMPTY) as AuditLog[],
+    nodeTasks: (results[13].data ?? EMPTY) as NodeTask[],
+    portForwards: (results[14].data ?? EMPTY) as PortForward[],
+    portForwardsLoading: results[14].isPending && results[14].fetchStatus !== "idle",
+    portForwardsError: results[14].isError,
+    portForwardsRefreshing: results[14].isFetching && !results[14].isPending,
     refreshing: results.some((result) => result.isFetching),
     error: results.find((result) => result.error)?.error ?? null,
     lastUpdatedAt: Math.max(0, ...results.map((result) => result.dataUpdatedAt)),
@@ -81,6 +103,8 @@ export function useConsoleData(
 type ResourceName =
   | "users"
   | "devices"
+  | "device-sessions"
+  | "device-control-policy"
   | "accounts"
   | "credential-profiles"
   | "config-imports"
@@ -96,7 +120,7 @@ type ResourceName =
 const pageResources: Record<Page, ResourceName[]> = {
   overview: ["users", "devices", "accounts", "nodes", "workspaces", "sync-sessions", "tool-sessions", "browser-sessions", "audit-logs", "node-tasks"],
   users: ["users"],
-  devices: ["devices"],
+  devices: ["devices", "device-sessions", "device-control-policy", "users"],
   accounts: ["accounts", "config-imports"],
   credentials: ["credential-profiles"],
   nodes: ["nodes", "node-tasks"],
@@ -114,7 +138,7 @@ function shouldLoad(
   resource: ResourceName,
   isAdmin: boolean
 ) {
-  const adminResources: ResourceName[] = ["users", "nodes", "node-tasks"];
+  const adminResources: ResourceName[] = ["users", "nodes", "node-tasks", "device-control-policy"];
   if (!isAdmin && adminResources.includes(resource)) return false;
   return enabled && page !== null && pageResources[page].includes(resource);
 }
@@ -122,6 +146,22 @@ function shouldLoad(
 function resourceQuery<T>(
   name: string,
   loader: () => Promise<T[]>,
+  enabled: boolean,
+  refetchInterval: number
+) {
+  return {
+    queryKey: ["console", name],
+    queryFn: loader,
+    enabled,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    staleTime: Math.min(refetchInterval, 30_000)
+  };
+}
+
+function valueQuery<T>(
+  name: string,
+  loader: () => Promise<T>,
   enabled: boolean,
   refetchInterval: number
 ) {

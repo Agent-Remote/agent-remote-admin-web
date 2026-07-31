@@ -2,6 +2,12 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.1.0 - 2026-07-31
+
+- feat: add device control status and session management to the console
+- feat: expose approval, revocation, lease, and release evidence state
+- test: cover top-level application routing (382a910)
+
 ## v0.0.6 - 2026-07-29
 
 - fix: remove vulnerable router runtime (0ddc70a)
@@ -62,4 +68,3 @@ All notable changes to this repository are recorded here.
 - ci: allow manual release dispatch (aba783a)
 - chore: release v0.0.2 (1dde86d)
 - ci: add multi-arch release versioning (63ad682)
-

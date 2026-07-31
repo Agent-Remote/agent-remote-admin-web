@@ -32,6 +32,35 @@ export type Device = {
   created_at: string;
 };
 
+export type DeviceSession = {
+  id: UUID;
+  user_id: UUID;
+  device_id: UUID;
+  tool_session_id: UUID;
+  node_id: UUID;
+  platform: "macos";
+  status: string;
+  generation: number;
+  lease_until: string | null;
+  expires_at: string;
+  lock_acquired_at: string | null;
+  stopped_at: string | null;
+  stop_reason: string | null;
+  created_at: string;
+};
+
+export type DeviceControlPolicy = {
+  enabled: boolean;
+  platform: "macos";
+  protocol_version: number;
+  lease_seconds: number;
+  maximum_ttl_seconds: number;
+  relay_maximum_frame_bytes: number;
+  relay_maximum_bytes_per_second: number;
+  relay_maximum_connection_seconds: number;
+  local_approval_required: true;
+};
+
 export type ToolAccount = {
   id: UUID;
   user_id: UUID;

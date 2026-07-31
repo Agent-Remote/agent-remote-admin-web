@@ -25,7 +25,11 @@ function renderPage() {
   const runAction = vi.fn(async (action: () => Promise<void>) => action());
   const props: ConsolePageProps = {
     accounts: [], apiBase: "http://localhost", auditLogs: [], browserSessions: [], busy: false,
-    configImports: [], credentialProfiles: [profile], devices: [], loadAll: async () => undefined,
+    configImports: [], credentialProfiles: [profile], devices: [], deviceSessions: [],
+    deviceSessionsError: false, deviceSessionsLoading: false, deviceSessionsRefreshing: false,
+    deviceControlPolicy: undefined, deviceControlPolicyError: false,
+    deviceControlPolicyLoading: false,
+    loadAll: async () => undefined,
     logout: vi.fn(), me: { id: "user-1", username: "user", display_name: "User", role: "user", status: "active", totp_enabled: false, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
     nodes: [], nodeTasks: [], portForwards: [], portForwardsError: false,
     portForwardsLoading: false, portForwardsRefreshing: false,

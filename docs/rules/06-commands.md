@@ -18,7 +18,7 @@ Expanded commands:
 ```sh
 bash -n scripts/*.sh
 npm run build
-npm test
+npm test -- --coverage
 git diff --check
 ```
 

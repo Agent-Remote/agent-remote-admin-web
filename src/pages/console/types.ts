@@ -5,6 +5,8 @@ import type {
   BrowserSession,
   DeveloperCredentialProfile,
   Device,
+  DeviceControlPolicy,
+  DeviceSession,
   NodeItem,
   NodeTask,
   Notice,
@@ -28,6 +30,13 @@ export type ConsolePageProps = {
   configImports: ToolAccountConfigImportStatus[];
   busy: boolean;
   devices: Device[];
+  deviceSessions: DeviceSession[];
+  deviceSessionsError: boolean;
+  deviceSessionsLoading: boolean;
+  deviceSessionsRefreshing: boolean;
+  deviceControlPolicy: DeviceControlPolicy | undefined;
+  deviceControlPolicyError: boolean;
+  deviceControlPolicyLoading: boolean;
   loadAll: () => Promise<void>;
   logout: () => void;
   me: User;

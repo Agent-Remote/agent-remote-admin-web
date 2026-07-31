@@ -2,6 +2,8 @@ import {
   Ban,
   Laptop,
   RotateCcw,
+  ShieldCheck,
+  Square,
   Trash2
 } from "lucide-react";
 import React from "react";
@@ -20,7 +22,24 @@ import { useI18n } from "../../i18n/I18nProvider";
 import type { ApiResponse } from "../../types";
 import { formatDate } from "../../utils/format";
 import type { ConsolePageProps } from "./types";
-export function DevicesPage({ devices, busy, request, runAction, setNotice }: ConsolePageProps) {
+const terminalSessionStatuses = new Set(["stopped", "denied", "expired", "failed"]);
+
+export function DevicesPage({
+  devices,
+  deviceSessions,
+  deviceSessionsError,
+  deviceSessionsLoading,
+  deviceSessionsRefreshing,
+  deviceControlPolicy,
+  deviceControlPolicyError,
+  deviceControlPolicyLoading,
+  users,
+  me,
+  busy,
+  request,
+  runAction,
+  setNotice
+}: ConsolePageProps) {
   const { t } = useI18n();
   const confirmAction = useConfirm();
   async function registerDevice(event: React.FormEvent<HTMLFormElement>) {
@@ -43,7 +62,8 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
   }
 
   return (
-    <div className="two-column">
+    <>
+      <div className="two-column">
       <section className="panel">
         <PanelTitle icon={Laptop} title={t("devices.title")} />
         {devices.length === 0 ? <EmptyBlock label={t("common.empty")} /> : null}
@@ -126,6 +146,99 @@ export function DevicesPage({ devices, busy, request, runAction, setNotice }: Co
           {t("devices.register")}
         </button>
       </ResponsiveForm>
-    </div>
+      </div>
+      {me.role === "admin" ? (
+        <section className="panel">
+          <PanelTitle icon={ShieldCheck} title={t("devices.controlPolicy")} />
+          {deviceControlPolicyLoading ? (
+            <div role="status">{t("devices.policyLoading")}</div>
+          ) : null}
+          {deviceControlPolicyError ? (
+            <div role="alert">{t("devices.policyLoadFailed")}</div>
+          ) : null}
+          {deviceControlPolicy ? (
+            <div className="metric-grid">
+              <div className="metric">
+                <strong>{t(deviceControlPolicy.enabled ? "common.enabled" : "common.disabled")}</strong>
+                <span>{t("devices.policyStatus")}</span>
+              </div>
+              <div className="metric">
+                <strong>{deviceControlPolicy.platform} / v{deviceControlPolicy.protocol_version}</strong>
+                <span>{t("devices.policyProtocol")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t("devices.policySeconds", { value: deviceControlPolicy.lease_seconds })}</strong>
+                <span>{t("devices.policyLease")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t("devices.policySeconds", { value: deviceControlPolicy.maximum_ttl_seconds })}</strong>
+                <span>{t("devices.policyMaximumTtl")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t("devices.policyBytes", { value: deviceControlPolicy.relay_maximum_frame_bytes })}</strong>
+                <span>{t("devices.policyFrameLimit")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t("devices.policyBytesPerSecond", { value: deviceControlPolicy.relay_maximum_bytes_per_second })}</strong>
+                <span>{t("devices.policyRateLimit")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t("devices.policySeconds", { value: deviceControlPolicy.relay_maximum_connection_seconds })}</strong>
+                <span>{t("devices.policyConnectionLimit")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t(deviceControlPolicy.local_approval_required ? "common.yes" : "common.no")}</strong>
+                <span>{t("devices.policyLocalApproval")}</span>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+      <section className="panel">
+        <PanelTitle icon={Laptop} title={t("devices.controlSessions")} />
+        {deviceSessionsLoading ? <div role="status">{t("devices.sessionsLoading")}</div> : null}
+        {deviceSessionsError ? <div role="alert">{t("devices.sessionsLoadFailed")}</div> : null}
+        {deviceSessionsRefreshing ? <div role="status">{t("devices.sessionsRefreshing")}</div> : null}
+        {!deviceSessionsLoading && !deviceSessionsError && deviceSessions.length === 0 ? (
+          <EmptyBlock label={t("devices.noControlSessions")} />
+        ) : null}
+        {deviceSessions.map((session) => {
+          const device = devices.find((item) => item.id === session.device_id);
+          const owner = users.find((item) => item.id === session.user_id);
+          const ownerLabel = owner?.display_name ?? session.user_id;
+          const deviceLabel = device?.name ?? session.device_id;
+          return (
+            <ResourceRow
+              key={session.id}
+              title={deviceLabel}
+              meta={`${t("devices.sessionOwner", { owner: ownerLabel })} · ${t("devices.sessionGeneration", { generation: session.generation })} · ${t("devices.sessionExpires", { time: formatDate(session.expires_at) })}`}
+              actions={
+                <>
+                  <StatusPill status={session.status} />
+                  <button
+                    disabled={busy || terminalSessionStatuses.has(session.status)}
+                    onClick={async () => {
+                      if (await confirmAction(t("devices.confirmStopSession", { name: deviceLabel }))) {
+                        void runAction(
+                          () => request(`/device-sessions/${session.id}/stop`, {
+                            method: "POST",
+                            body: JSON.stringify({ reason: "user_stop" })
+                          }).then(() => undefined),
+                          t("devices.sessionStopped")
+                        );
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Square size={14} />
+                    {me.role === "admin" ? t("devices.forceStop") : t("sessions.stop")}
+                  </button>
+                </>
+              }
+            />
+          );
+        })}
+      </section>
+    </>
   );
 }

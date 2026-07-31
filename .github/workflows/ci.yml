@@ -19,9 +19,16 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high --json > npm-audit.json
+      - name: Upload dependency vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: agent-remote-admin-web-npm-audit
+          path: npm-audit.json
+          if-no-files-found: error
       - run: scripts/run-quality-checks.sh
-      - name: Generate coverage report
-        run: npm test -- --coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7.0.0
         with:

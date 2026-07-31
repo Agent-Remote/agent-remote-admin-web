@@ -5,6 +5,7 @@
 - Shell scripts parse successfully.
 - The strict TypeScript production build succeeds.
 - All Vitest tests pass.
+- Coverage remains at or above 80% statements, 65% branches, 80% functions, and 85% lines.
 - Git reports no whitespace errors.
 
 Add focused tests for navigation, authorization-dependent rendering, mutations, confirmations, localization, and regressions. CI, pre-commit, and pre-push all run the same gate.

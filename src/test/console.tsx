@@ -21,6 +21,13 @@ export function makeConsoleProps(overrides: Partial<ConsolePageProps> = {}) {
     configImports: [],
     busy: false,
     devices: [],
+    deviceSessions: [],
+    deviceSessionsError: false,
+    deviceSessionsLoading: false,
+    deviceSessionsRefreshing: false,
+    deviceControlPolicy: undefined,
+    deviceControlPolicyError: false,
+    deviceControlPolicyLoading: false,
     loadAll: vi.fn(async () => undefined),
     logout: vi.fn(),
     me: {
