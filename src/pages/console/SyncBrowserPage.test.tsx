@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { makeConsoleProps, renderConsole } from "../../test/console";
 import type { BrowserSession, SyncSession, ToolAccount, Workspace } from "../../types";
@@ -55,7 +55,8 @@ describe("sync and browser pages", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[0]);
     fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/workspaces/workspace-1", { method: "DELETE" }));
-    fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
+    const failedRow = screen.getByText("/src/failed").closest(".resource-row");
+    fireEvent.click(within(failedRow as HTMLElement).getByRole("button", { name: "Delete" }));
     fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/sync-sessions/failed", { method: "DELETE" }));
   });

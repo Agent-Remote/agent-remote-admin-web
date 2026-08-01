@@ -14,7 +14,7 @@ describe("getSyncSessionActions", () => {
 
   it("offers resume only while paused", () => {
     expect(getSyncSessionActions("paused", "none")).toMatchObject({
-      canDelete: false,
+      canDelete: true,
       canPause: false,
       canResume: true
     });

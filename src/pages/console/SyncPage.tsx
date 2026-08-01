@@ -219,42 +219,42 @@ export function SyncPage({ workspaces, syncSessions, devices, nodes, busy, reque
                     </button>
                   ) : null}
                   {getSyncSessionActions(sync.status, sync.conflict_status).canReset ? (
-                    <>
-                      <button
-                        disabled={busy}
-                        onClick={async () => {
-                          if (await confirmAction(t("common.confirmReset"))) {
-                            void runAction(
-                              () =>
-                                request(`/sync-sessions/${sync.id}/reset`, {
-                                  method: "POST",
-                                  body: JSON.stringify({ note: "admin-web" })
-                                }).then(() => undefined),
-                              t("sync.reset")
-                            );
-                          }
-                        }}
-                        type="button"
-                      >
-                        <RotateCcw size={15} />
-                        {t("sync.resetAction")}
-                      </button>
-                      <button
-                        disabled={busy}
-                        onClick={async () => {
-                          if (await confirmAction(t("common.confirmDelete", { name: sync.local_path }))) {
-                            void runAction(
-                              () => request(`/sync-sessions/${sync.id}`, { method: "DELETE" }).then(() => undefined),
-                              t("sync.deleted")
-                            );
-                          }
-                        }}
-                        type="button"
-                      >
-                        <Trash2 size={15} />
-                        {t("common.delete")}
-                      </button>
-                    </>
+                    <button
+                      disabled={busy}
+                      onClick={async () => {
+                        if (await confirmAction(t("common.confirmReset"))) {
+                          void runAction(
+                            () =>
+                              request(`/sync-sessions/${sync.id}/reset`, {
+                                method: "POST",
+                                body: JSON.stringify({ note: "admin-web" })
+                              }).then(() => undefined),
+                            t("sync.reset")
+                          );
+                        }
+                      }}
+                      type="button"
+                    >
+                      <RotateCcw size={15} />
+                      {t("sync.resetAction")}
+                    </button>
+                  ) : null}
+                  {getSyncSessionActions(sync.status, sync.conflict_status).canDelete ? (
+                    <button
+                      disabled={busy}
+                      onClick={async () => {
+                        if (await confirmAction(t("common.confirmDelete", { name: sync.local_path }))) {
+                          void runAction(
+                            () => request(`/sync-sessions/${sync.id}`, { method: "DELETE" }).then(() => undefined),
+                            t("sync.deleted")
+                          );
+                        }
+                      }}
+                      type="button"
+                    >
+                      <Trash2 size={15} />
+                      {t("common.delete")}
+                    </button>
                   ) : null}
                 </>
               }
