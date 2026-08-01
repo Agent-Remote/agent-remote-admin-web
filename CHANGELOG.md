@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.1.7 - 2026-08-01
+
+- Release metadata update.
+
 ## v0.1.6 - 2026-08-01
 
 - fix: allow deleting paused sync sessions (a1366f9)
