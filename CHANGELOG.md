@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.1.8 - 2026-08-03
+
+- feat: add local device session binding (61fee31)
+
 ## v0.1.7 - 2026-08-01
 
 - Release metadata update.
