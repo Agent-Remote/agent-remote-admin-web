@@ -75,11 +75,19 @@ describe("useConsoleData", () => {
     expect(administrator.list.mock.calls.map(([path]) => path).sort()).toEqual([
       "/device-sessions?all_users=true",
       "/devices",
-      "/users"
+      "/sessions",
+      "/users",
+      "/workspaces"
     ]);
 
     const regularUser = setup("devices", false);
-    await waitFor(() => expect(regularUser.list).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(regularUser.list).toHaveBeenCalledTimes(4));
+    expect(regularUser.list.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/device-sessions",
+      "/devices",
+      "/sessions",
+      "/workspaces"
+    ]);
     expect(regularUser.request).not.toHaveBeenCalled();
   });
 });

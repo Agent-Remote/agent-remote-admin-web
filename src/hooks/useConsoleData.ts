@@ -120,7 +120,7 @@ type ResourceName =
 const pageResources: Record<Page, ResourceName[]> = {
   overview: ["users", "devices", "accounts", "nodes", "workspaces", "sync-sessions", "tool-sessions", "browser-sessions", "audit-logs", "node-tasks"],
   users: ["users"],
-  devices: ["devices", "device-sessions", "device-control-policy", "users"],
+  devices: ["devices", "device-sessions", "device-control-policy", "users", "tool-sessions", "workspaces"],
   accounts: ["accounts", "config-imports"],
   credentials: ["credential-profiles"],
   nodes: ["nodes", "node-tasks"],

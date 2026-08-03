@@ -33,6 +33,8 @@ export function DevicesPage({
   deviceControlPolicy,
   deviceControlPolicyError,
   deviceControlPolicyLoading,
+  toolSessions,
+  workspaces,
   users,
   me,
   busy,
@@ -207,11 +209,17 @@ export function DevicesPage({
           const owner = users.find((item) => item.id === session.user_id);
           const ownerLabel = owner?.display_name ?? session.user_id;
           const deviceLabel = device?.name ?? session.device_id;
+          const toolSession = toolSessions.find((item) => item.id === session.tool_session_id);
+          const workspace = workspaces.find((item) => item.id === toolSession?.workspace_id);
+          const claudeLabel = workspace?.display_name ?? session.tool_session_id;
+          const stopMetadata = session.stop_reason
+            ? ` · ${t("devices.sessionStopReason", { reason: session.stop_reason })}`
+            : "";
           return (
             <ResourceRow
               key={session.id}
               title={deviceLabel}
-              meta={`${t("devices.sessionOwner", { owner: ownerLabel })} · ${t("devices.sessionGeneration", { generation: session.generation })} · ${t("devices.sessionExpires", { time: formatDate(session.expires_at) })}`}
+              meta={`${t("devices.sessionClaude", { session: claudeLabel })} · ${t("devices.sessionOwner", { owner: ownerLabel })} · ${t("devices.sessionGeneration", { generation: session.generation })} · ${t("devices.sessionExpires", { time: formatDate(session.expires_at) })}${stopMetadata}`}
               actions={
                 <>
                   <StatusPill status={session.status} />

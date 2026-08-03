@@ -97,6 +97,7 @@ describe("users and devices pages", () => {
     renderConsole(<DevicesPage {...props} />);
 
     expect(screen.getByText("Device control sessions")).toBeInTheDocument();
+    expect(screen.getByText(/Claude session tool-session-1/)).toBeInTheDocument();
     expect(screen.getByText(/Owner Grace/)).toBeInTheDocument();
     expect(screen.getByText(/Generation 3/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Force stop" }));
