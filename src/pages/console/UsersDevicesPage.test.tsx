@@ -111,6 +111,26 @@ describe("users and devices pages", () => {
     ));
   });
 
+  it("deletes ended device sessions and supports bulk cleanup", async () => {
+    const endedSession = { ...deviceSession, status: "stopped" as const, stopped_at: "2026-01-01T00:02:00Z" };
+    const { props, requestMock } = makeConsoleProps({
+      devices: [device],
+      deviceSessions: [endedSession],
+      users: [user]
+    });
+    renderConsole(<DevicesPage {...props} />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[1]);
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent("Delete the ended device control session");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/device-sessions/control-1", { method: "DELETE" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear ended sessions" }));
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent("Delete these 1 ended device control sessions");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/device-sessions", { method: "DELETE" }));
+  });
+
   it("renders device-session loading and error states", () => {
     const { props } = makeConsoleProps({
       deviceSessionsLoading: true,

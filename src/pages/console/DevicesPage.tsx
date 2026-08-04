@@ -44,6 +44,7 @@ export function DevicesPage({
 }: ConsolePageProps) {
   const { t } = useI18n();
   const confirmAction = useConfirm();
+  const deletableSessionCount = deviceSessions.filter((session) => terminalSessionStatuses.has(session.status)).length;
   async function registerDevice(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -197,7 +198,30 @@ export function DevicesPage({
         </section>
       ) : null}
       <section className="panel">
-        <PanelTitle icon={Laptop} title={t("devices.controlSessions")} />
+        <PanelTitle
+          action={
+            deletableSessionCount > 0 ? (
+              <button
+                className="danger-ghost"
+                disabled={busy}
+                onClick={async () => {
+                  if (await confirmAction(t("devices.confirmDeleteAllSessions", { count: deletableSessionCount }))) {
+                    void runAction(
+                      () => request("/device-sessions", { method: "DELETE" }).then(() => undefined),
+                      t("devices.sessionsDeletedAll")
+                    );
+                  }
+                }}
+                type="button"
+              >
+                <Trash2 size={15} />
+                {t("devices.deleteAllSessions")}
+              </button>
+            ) : undefined
+          }
+          icon={Laptop}
+          title={t("devices.controlSessions")}
+        />
         {deviceSessionsLoading ? <div role="status">{t("devices.sessionsLoading")}</div> : null}
         {deviceSessionsError ? <div role="alert">{t("devices.sessionsLoadFailed")}</div> : null}
         {deviceSessionsRefreshing ? <div role="status">{t("devices.sessionsRefreshing")}</div> : null}
@@ -241,6 +265,23 @@ export function DevicesPage({
                     <Square size={14} />
                     {me.role === "admin" ? t("devices.forceStop") : t("sessions.stop")}
                   </button>
+                  {terminalSessionStatuses.has(session.status) ? (
+                    <button
+                      disabled={busy}
+                      onClick={async () => {
+                        if (await confirmAction(t("devices.confirmDeleteSession", { name: deviceLabel }))) {
+                          void runAction(
+                            () => request(`/device-sessions/${session.id}`, { method: "DELETE" }).then(() => undefined),
+                            t("devices.sessionDeleted")
+                          );
+                        }
+                      }}
+                      type="button"
+                    >
+                      <Trash2 size={14} />
+                      {t("common.delete")}
+                    </button>
+                  ) : null}
                 </>
               }
             />
