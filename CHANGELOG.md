@@ -2,6 +2,12 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.2 - 2026-08-07
+
+- fix: build static admin assets natively (e8d52b6)
+- Revert "chore: release v0.2.2" (348bb3e)
+- chore: release v0.2.2 (8666cd8)
+
 ## v0.2.1 - 2026-08-05
 
 - Release metadata update.
