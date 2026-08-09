@@ -101,14 +101,15 @@ function renderPage(
 }
 
 describe("SessionsPage", () => {
-  it("deletes only stopped or interrupted sessions and supports bulk cleanup", async () => {
+  it("deletes stopped, interrupted, or failed sessions and supports bulk cleanup", async () => {
     const { request } = renderPage([
       session("running", "running"),
       session("stopped", "stopped"),
-      session("interrupted", "interrupted")
+      session("interrupted", "interrupted"),
+      session("failed", "failed")
     ]);
 
-    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(3);
     fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[0]);
     fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() => {
@@ -116,7 +117,9 @@ describe("SessionsPage", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Clear ended sessions" }));
-    expect(await screen.findByRole("alertdialog")).toHaveTextContent("these 2 stopped or interrupted sessions");
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent(
+      "these 3 stopped, interrupted, or failed sessions"
+    );
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith("/sessions", { method: "DELETE" });

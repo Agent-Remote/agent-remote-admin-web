@@ -200,5 +200,5 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
 }
 
 function isDeletableSession(status: string) {
-  return status === "stopped" || status === "interrupted";
+  return status === "stopped" || status === "interrupted" || status === "failed";
 }
