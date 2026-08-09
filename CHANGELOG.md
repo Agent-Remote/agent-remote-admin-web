@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.3 - 2026-08-09
+
+- fix: update vulnerable frontend dependencies (c9b40d5)
+- feat: allow deleting failed sessions (c8df7d4)
+
 ## v0.2.2 - 2026-08-07
 
 - fix: build static admin assets natively (e8d52b6)
