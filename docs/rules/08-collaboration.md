@@ -7,3 +7,7 @@ Commits follow Conventional Commits: `type(scope): subject` or `type: subject`. 
 Install hooks with `scripts/install-githooks.sh`. `pre-commit` and `pre-push` run the full quality gate; `commit-msg` validates the subject.
 
 Pull requests must describe user-visible behavior, API assumptions, test coverage, and screenshots for meaningful visual changes. Do not bypass hooks or weaken CI to merge a change.
+
+The Admin Web version and release cadence belong only to this repository. Preparing an Admin Web
+release must not require or rewrite another component's version. Supported production combinations
+are selected and verified by the root `agent-remote` release manifest.
