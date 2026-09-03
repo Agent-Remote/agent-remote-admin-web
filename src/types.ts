@@ -41,6 +41,9 @@ export type DeviceSession = {
   platform: "macos";
   status: string;
   generation: number;
+  authorization_mode: "per_application_approval" | "session_full_trust";
+  authorization_policy_version: number;
+  authorized_at: string | null;
   lease_until: string | null;
   expires_at: string;
   lock_acquired_at: string | null;
@@ -58,7 +61,12 @@ export type DeviceControlPolicy = {
   relay_maximum_frame_bytes: number;
   relay_maximum_bytes_per_second: number;
   relay_maximum_connection_seconds: number;
-  local_approval_required: true;
+  authorization_mode: "per_application_approval" | "session_full_trust";
+  authorization_policy_version: number;
+  application_scope: "approved_applications" | "all_user_gui_applications";
+  control_level: "approved_level" | "full_control";
+  clipboard_scope: "per_application_approval" | "global_plain_text";
+  application_launch: boolean;
 };
 
 export type ToolAccount = {

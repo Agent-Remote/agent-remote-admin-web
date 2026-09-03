@@ -22,6 +22,9 @@ const deviceSession: DeviceSession = {
   platform: "macos",
   status: "active",
   generation: 3,
+  authorization_mode: "session_full_trust",
+  authorization_policy_version: 1,
+  authorized_at: "2026-01-01T00:00:20Z",
   lease_until: "2026-01-01T00:01:00Z",
   expires_at: "2026-01-01T01:00:00Z",
   lock_acquired_at: "2026-01-01T00:00:30Z",
@@ -38,7 +41,12 @@ const deviceControlPolicy: DeviceControlPolicy = {
   relay_maximum_frame_bytes: 1048576,
   relay_maximum_bytes_per_second: 8388608,
   relay_maximum_connection_seconds: 900,
-  local_approval_required: true
+  authorization_mode: "session_full_trust",
+  authorization_policy_version: 1,
+  application_scope: "all_user_gui_applications",
+  control_level: "full_control",
+  clipboard_scope: "global_plain_text",
+  application_launch: true
 };
 
 describe("users and devices pages", () => {

@@ -190,8 +190,20 @@ export function DevicesPage({
                 <span>{t("devices.policyConnectionLimit")}</span>
               </div>
               <div className="metric">
-                <strong>{t(deviceControlPolicy.local_approval_required ? "common.yes" : "common.no")}</strong>
-                <span>{t("devices.policyLocalApproval")}</span>
+                <strong>{t(`devices.authorization.${deviceControlPolicy.authorization_mode}`)}</strong>
+                <span>{t("devices.policyAuthorization", { version: deviceControlPolicy.authorization_policy_version })}</span>
+              </div>
+              <div className="metric">
+                <strong>{t(`devices.applicationScope.${deviceControlPolicy.application_scope}`)}</strong>
+                <span>{t("devices.policyApplicationScope")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t(`devices.clipboardScope.${deviceControlPolicy.clipboard_scope}`)}</strong>
+                <span>{t("devices.policyClipboardScope")}</span>
+              </div>
+              <div className="metric">
+                <strong>{t(deviceControlPolicy.application_launch ? "common.enabled" : "common.disabled")}</strong>
+                <span>{t("devices.policyApplicationLaunch")}</span>
               </div>
             </div>
           ) : null}
