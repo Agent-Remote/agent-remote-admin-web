@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.9 - 2026-09-03
+
+- fix(deps): update browserslist security patch (b05ab1e)
+- feat: show device authorization policy (db3ff52)
+
 ## v0.2.8 - 2026-08-19
 
 - docs: define independent release policy (4a2a023)
