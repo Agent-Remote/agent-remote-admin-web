@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.10 - 2026-09-05
+
+- ci: optimize workflow execution (93b588f)
+
 ## v0.2.9 - 2026-09-03
 
 - fix(deps): update browserslist security patch (b05ab1e)
