@@ -17,9 +17,14 @@ permissions:
   id-token: write
   attestations: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   image:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: actions/setup-node@v6.4.0
@@ -47,8 +52,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
-          npm ci
-          npm audit --omit=dev --audit-level=high --json \
+          npm audit --package-lock-only --omit=dev --audit-level=high --json \
             > "agent-remote-admin-web-${VERSION}.npm-audit.json"
       - name: Resolve image name
         id: image
@@ -80,6 +84,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - uses: sigstore/cosign-installer@v4.0.0
       - name: Sign and verify admin vulnerability report
         env:
