@@ -28,6 +28,12 @@ export function makeConsoleProps(overrides: Partial<ConsolePageProps> = {}) {
     deviceControlPolicy: undefined,
     deviceControlPolicyError: false,
     deviceControlPolicyLoading: false,
+    egoBrowserBindings: [],
+    egoBrowserDevices: [],
+    egoBrowserRequestStates: {},
+    egoBrowserError: false,
+    egoBrowserLoading: false,
+    egoBrowserRefreshing: false,
     loadAll: vi.fn(async () => undefined),
     logout: vi.fn(),
     me: {

@@ -56,6 +56,12 @@ function renderPage(
     deviceControlPolicy: undefined,
     deviceControlPolicyError: false,
     deviceControlPolicyLoading: false,
+    egoBrowserBindings: [],
+    egoBrowserDevices: [],
+    egoBrowserRequestStates: {},
+    egoBrowserError: false,
+    egoBrowserLoading: false,
+    egoBrowserRefreshing: false,
     loadAll: async () => undefined,
     logout: vi.fn(),
     me: {

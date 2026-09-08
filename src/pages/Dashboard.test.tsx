@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { makeConsoleProps, renderConsole } from "../test/console";
 import { Dashboard } from "./Dashboard";
@@ -29,5 +29,20 @@ describe("Dashboard", () => {
     await waitFor(() => expect(screen.queryByRole("region", { name: "All features" })).not.toBeInTheDocument());
     fireEvent.click(screen.getAllByRole("button", { name: "Users" })[0]);
     expect(props.setPage).toHaveBeenCalledWith("users");
+  });
+
+  it("exposes ego-browser navigation on desktop and in the mobile feature drawer", async () => {
+    const { props } = makeConsoleProps();
+    renderConsole(<Dashboard {...props} />);
+    await screen.findByText("Recent audit");
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Local ego browser" })[0]);
+    expect(props.setPage).toHaveBeenCalledWith("ego-browser");
+
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    const drawer = screen.getByRole("region", { name: "All features" });
+    fireEvent.click(within(drawer).getByRole("button", { name: "Local ego browser" }));
+    expect(props.setPage).toHaveBeenLastCalledWith("ego-browser");
+    expect(screen.queryByRole("region", { name: "All features" })).not.toBeInTheDocument();
   });
 });

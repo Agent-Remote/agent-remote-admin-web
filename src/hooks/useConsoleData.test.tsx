@@ -3,11 +3,15 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type React from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { ApiClient } from "../api/client";
-import type { Page } from "../types";
+import type { EgoBrowserBinding, Page } from "../types";
 import { useConsoleData } from "./useConsoleData";
 
-function setup(page: Page, isAdmin: boolean) {
-  const list = vi.fn().mockResolvedValue([]);
+function setup(
+  page: Page,
+  isAdmin: boolean,
+  responseFor?: (path: string) => unknown[]
+) {
+  const list = vi.fn(async (path: string) => responseFor?.(path) ?? []);
   const request = vi.fn().mockResolvedValue({ data: {} });
   const client = { list, request } as unknown as ApiClient;
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -89,5 +93,43 @@ describe("useConsoleData", () => {
       "/workspaces"
     ]);
     expect(regularUser.request).not.toHaveBeenCalled();
+  });
+
+  it("loads personal and administrator ego-browser scopes separately", async () => {
+    const personal = setup("ego-browser", false);
+    await waitFor(() => expect(personal.list).toHaveBeenCalledTimes(3));
+    expect(personal.list.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/ego-browser/bindings",
+      "/ego-browser/devices",
+      "/sessions"
+    ]);
+
+    const administrator = setup("ego-browser", true);
+    await waitFor(() => expect(administrator.list).toHaveBeenCalledTimes(4));
+    expect(administrator.list.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/ego-browser/bindings?all_users=true",
+      "/ego-browser/devices?all_users=true",
+      "/sessions",
+      "/users"
+    ]);
+  });
+
+  it("loads active requests through a binding-scoped query", async () => {
+    const activeBinding = {
+      id: "99999999-8888-7777-6666-555555555555",
+      status: "active"
+    } as EgoBrowserBinding;
+    const { list } = setup("ego-browser", false, (path) =>
+      path === "/ego-browser/bindings" ? [activeBinding] : []
+    );
+
+    await waitFor(() =>
+      expect(list).toHaveBeenCalledWith(
+        `/ego-browser/bindings/${activeBinding.id}/requests`
+      )
+    );
+    expect(
+      list.mock.calls.filter(([path]) => path.endsWith("/requests"))
+    ).toHaveLength(1);
   });
 });

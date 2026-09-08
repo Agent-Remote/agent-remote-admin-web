@@ -62,4 +62,10 @@ describe("App routing", () => {
     expect(await screen.findByText("Dashboard overview sync failed")).toBeInTheDocument();
     await waitFor(() => expect(window.location.pathname).toBe("/app/overview"));
   });
+
+  it("keeps the ego-browser console route directly addressable", async () => {
+    renderApp("/app/ego-browser");
+    expect(await screen.findByText("Dashboard ego-browser sync failed")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/app/ego-browser");
+  });
 });

@@ -432,6 +432,112 @@ p {
   align-items: start;
 }
 
+.ego-browser-page {
+  display: grid;
+  gap: 16px;
+}
+
+.ego-browser-columns {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.trust-warning {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  border-left: 3px solid var(--warning);
+  background: var(--warning-soft);
+  color: #68420a;
+  padding: 14px 16px;
+}
+
+.trust-warning > svg {
+  margin-top: 1px;
+}
+
+.trust-warning div {
+  display: grid;
+  gap: 5px;
+}
+
+.trust-warning h2 {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.trust-warning p {
+  max-width: 92ch;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.ego-browser-page .resource-main span {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.ego-browser-request-list {
+  display: grid;
+  margin: -4px 0 8px 16px;
+  border-left: 2px solid #dce8e3;
+  padding-left: 14px;
+}
+
+.ego-browser-request-list .resource-row {
+  padding: 9px 0;
+}
+
+.ego-browser-request-state {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.ego-browser-request-state.error {
+  justify-content: flex-start;
+  color: var(--danger);
+}
+
+.browser-data-state,
+.browser-data-error {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  min-height: 86px;
+  color: var(--text-subtle);
+  font-size: 13px;
+}
+
+.browser-data-state {
+  grid-template-columns: minmax(160px, 0.45fr) repeat(2, minmax(160px, 1fr));
+}
+
+.browser-data-state i {
+  display: block;
+  height: 42px;
+  border-radius: 6px;
+  background: var(--surface-strong);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.browser-data-error {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-left: 3px solid var(--danger);
+  background: var(--danger-soft);
+  color: #8f2929;
+  padding: 12px 14px;
+}
+
 .panel-column {
   display: grid;
   gap: 16px;
@@ -989,7 +1095,8 @@ p {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
   }
 
-  .two-column {
+  .two-column,
+  .ego-browser-columns {
     grid-template-columns: 1fr;
   }
 }
@@ -1121,6 +1228,15 @@ p {
   .resource-row {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .browser-data-state,
+  .browser-data-error {
+    grid-template-columns: 1fr;
+  }
+
+  .browser-data-error button {
+    justify-self: start;
   }
 
   .data-state {

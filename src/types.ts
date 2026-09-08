@@ -69,6 +69,101 @@ export type DeviceControlPolicy = {
   application_launch: boolean;
 };
 
+export type EgoBrowserDevice = {
+  id: UUID;
+  user_id: UUID;
+  public_key: string;
+  encryption_public_key: string | null;
+  generation: number;
+  status: string;
+  platform: "macos";
+  release_profile:
+    | "community-local-trust"
+    | "development-local"
+    | "developer-id"
+    | "logic-test";
+  signer_certificate_sha256: string;
+  credential_profile: "community_file" | "keychain_access_group";
+  bridge_protocol_version: string;
+  bridge_version: string | null;
+  local_ego_browser_runtime_version: string | null;
+  ego_lite_runtime_version: string | null;
+  skill_version: string | null;
+  capabilities: string[];
+  allowlist_revision: number;
+  allowlist_roots_digest: string | null;
+  learning_bundle_digest: string | null;
+  last_seen_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EgoBrowserBinding = {
+  id: UUID;
+  user_id: UUID;
+  ego_browser_device_id: UUID;
+  tool_session_id: UUID;
+  node_id: UUID;
+  status: string;
+  control_channel: "ego_browser_bridge";
+  relay_binding_kind: "ego_browser";
+  authorization_mode: "ego_browser_script_full_trust";
+  authorization_policy_version: number;
+  authorized_at: string;
+  release_profile:
+    | "community-local-trust"
+    | "development-local"
+    | "developer-id"
+    | "logic-test";
+  signer_certificate_sha256: string;
+  credential_profile: "community_file" | "keychain_access_group";
+  remote_platform: "linux";
+  local_platform: "macos";
+  local_runtime_version: string | null;
+  ego_lite_runtime_version: string | null;
+  skill_version: string | null;
+  bridge_protocol_version: string;
+  task_space_label: string | null;
+  allowlist_revision: number;
+  allowlist_roots_digest: string | null;
+  learning_bundle_digest: string | null;
+  concurrency_mode: "task_space_tab" | "task_space" | "binding";
+  max_parallel_requests: number;
+  capabilities: string[];
+  lease_until: string | null;
+  lease_health: "healthy" | "renewal_grace" | "expired";
+  lease_grace_until: string | null;
+  lease_renew_interval_seconds: number;
+  lease_renew_failure_grace_seconds: number;
+  absolute_ttl_until: string;
+  generation: number;
+  connected_at: string | null;
+  stopped_at: string | null;
+  stop_reason: string | null;
+  revoked_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EgoBrowserRequest = {
+  id: UUID;
+  binding_id: UUID;
+  generation: number;
+  request_id: string;
+  sequence: number;
+  message_type: "execute";
+  payload_bytes: number;
+  status: "accepted" | "cancel_requested";
+  created_at: string;
+};
+
+export type EgoBrowserRequestState = {
+  items: EgoBrowserRequest[];
+  loading: boolean;
+  error: boolean;
+  refreshing: boolean;
+};
+
 export type ToolAccount = {
   id: UUID;
   user_id: UUID;
@@ -280,6 +375,7 @@ export type Page =
   | "sessions"
   | "sync"
   | "browser"
+  | "ego-browser"
   | "audit"
   | "settings";
 

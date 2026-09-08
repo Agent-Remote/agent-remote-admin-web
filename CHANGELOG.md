@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.11 - 2026-09-08
+
+- Release metadata update.
+
 ## v0.2.10 - 2026-09-05
 
 - ci: optimize workflow execution (93b588f)

@@ -11,6 +11,7 @@ const AuditPage = lazy(() => import("./console/AuditPage").then((module) => ({ d
 const BrowserPage = lazy(() => import("./console/BrowserPage").then((module) => ({ default: module.BrowserPage })));
 const CredentialsPage = lazy(() => import("./console/CredentialsPage").then((module) => ({ default: module.CredentialsPage })));
 const DevicesPage = lazy(() => import("./console/DevicesPage").then((module) => ({ default: module.DevicesPage })));
+const EgoBrowserPage = lazy(() => import("./console/EgoBrowserPage").then((module) => ({ default: module.EgoBrowserPage })));
 const NodesPage = lazy(() => import("./console/NodesPage").then((module) => ({ default: module.NodesPage })));
 const PortForwardsPage = lazy(() => import("./console/PortForwardsPage").then((module) => ({ default: module.PortForwardsPage })));
 const OverviewPage = lazy(() => import("./console/OverviewPage").then((module) => ({ default: module.OverviewPage })));
@@ -145,6 +146,7 @@ export function Dashboard(props: DashboardProps) {
               {props.page === "sessions" ? <SessionsPage {...props} /> : null}
               {props.page === "sync" ? <SyncPage {...props} /> : null}
               {props.page === "browser" ? <BrowserPage {...props} /> : null}
+              {props.page === "ego-browser" ? <EgoBrowserPage {...props} /> : null}
               {props.page === "audit" ? <AuditPage auditLogs={props.auditLogs} /> : null}
               {props.page === "settings" ? <SettingsPage {...props} /> : null}
             </Suspense>

@@ -8,6 +8,10 @@ import type {
   Device,
   DeviceControlPolicy,
   DeviceSession,
+  EgoBrowserBinding,
+  EgoBrowserDevice,
+  EgoBrowserRequest,
+  EgoBrowserRequestState,
   NodeItem,
   NodeTask,
   PortForward,
@@ -61,8 +65,48 @@ export function useConsoleData(
         () => client.list<PortForward>(isAdmin ? "/port-forwards?all_users=true" : "/port-forwards"),
         shouldLoad(enabled, page, "port-forwards", isAdmin),
         5_000
+      ),
+      resourceQuery<EgoBrowserDevice>(
+        isAdmin ? "ego-browser-devices-all" : "ego-browser-devices-mine",
+        () => client.list<EgoBrowserDevice>(isAdmin ? "/ego-browser/devices?all_users=true" : "/ego-browser/devices"),
+        shouldLoad(enabled, page, "ego-browser-devices", isAdmin),
+        10_000
+      ),
+      resourceQuery<EgoBrowserBinding>(
+        isAdmin ? "ego-browser-bindings-all" : "ego-browser-bindings-mine",
+        () => client.list<EgoBrowserBinding>(isAdmin ? "/ego-browser/bindings?all_users=true" : "/ego-browser/bindings"),
+        shouldLoad(enabled, page, "ego-browser-bindings", isAdmin),
+        5_000
       )
     ]
+  });
+  const egoBrowserBindings = (results[16].data ?? EMPTY) as EgoBrowserBinding[];
+  const requestBindings =
+    enabled && page === "ego-browser"
+      ? egoBrowserBindings.filter((binding) => binding.status === "active")
+      : [];
+  const requestResults = useQueries({
+    queries: requestBindings.map((binding) =>
+      resourceQuery<EgoBrowserRequest>(
+        `ego-browser-requests-${binding.id}`,
+        () =>
+          client.list<EgoBrowserRequest>(
+            `/ego-browser/bindings/${encodeURIComponent(binding.id)}/requests`
+          ),
+        true,
+        2_000
+      )
+    )
+  });
+  const egoBrowserRequestStates: Record<string, EgoBrowserRequestState> = {};
+  requestBindings.forEach((binding, index) => {
+    const result = requestResults[index];
+    egoBrowserRequestStates[binding.id] = {
+      items: (result.data ?? EMPTY) as EgoBrowserRequest[],
+      loading: result.isPending && result.fetchStatus !== "idle",
+      error: result.isError,
+      refreshing: result.isFetching && !result.isPending
+    };
   });
 
   const refresh = useCallback(async () => {
@@ -93,9 +137,28 @@ export function useConsoleData(
     portForwardsLoading: results[14].isPending && results[14].fetchStatus !== "idle",
     portForwardsError: results[14].isError,
     portForwardsRefreshing: results[14].isFetching && !results[14].isPending,
-    refreshing: results.some((result) => result.isFetching),
-    error: results.find((result) => result.error)?.error ?? null,
-    lastUpdatedAt: Math.max(0, ...results.map((result) => result.dataUpdatedAt)),
+    egoBrowserDevices: (results[15].data ?? EMPTY) as EgoBrowserDevice[],
+    egoBrowserBindings,
+    egoBrowserRequestStates,
+    egoBrowserLoading: [results[15], results[16]].some(
+      (result) => result.isPending && result.fetchStatus !== "idle"
+    ),
+    egoBrowserError: results[15].isError || results[16].isError,
+    egoBrowserRefreshing: [results[15], results[16]].some(
+      (result) => result.isFetching && !result.isPending
+    ),
+    refreshing:
+      results.some((result) => result.isFetching) ||
+      requestResults.some((result) => result.isFetching),
+    error:
+      results.find((result) => result.error)?.error ??
+      requestResults.find((result) => result.error)?.error ??
+      null,
+    lastUpdatedAt: Math.max(
+      0,
+      ...results.map((result) => result.dataUpdatedAt),
+      ...requestResults.map((result) => result.dataUpdatedAt)
+    ),
     refresh
   };
 }
@@ -115,7 +178,9 @@ type ResourceName =
   | "browser-sessions"
   | "audit-logs"
   | "node-tasks"
-  | "port-forwards";
+  | "port-forwards"
+  | "ego-browser-devices"
+  | "ego-browser-bindings";
 
 const pageResources: Record<Page, ResourceName[]> = {
   overview: ["users", "devices", "accounts", "nodes", "workspaces", "sync-sessions", "tool-sessions", "browser-sessions", "audit-logs", "node-tasks"],
@@ -128,6 +193,12 @@ const pageResources: Record<Page, ResourceName[]> = {
   sessions: ["tool-sessions", "accounts", "workspaces"],
   sync: ["workspaces", "sync-sessions", "devices", "nodes"],
   browser: ["browser-sessions", "accounts"],
+  "ego-browser": [
+    "ego-browser-devices",
+    "ego-browser-bindings",
+    "users",
+    "tool-sessions"
+  ],
   audit: ["audit-logs"],
   settings: []
 };

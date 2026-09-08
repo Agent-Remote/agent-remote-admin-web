@@ -11,4 +11,10 @@ describe("responsive layout breakpoints", () => {
     expect(styles).toMatch(/@media \(max-width: 767px\)[\s\S]*?\.sidebar\s*{\s*display: none;/);
     expect(styles).toMatch(/@media \(max-width: 767px\)[\s\S]*?\.mobile-tabbar\s*{[\s\S]*?display: grid;/);
   });
+
+  it("keeps request retry away from the request action edge", () => {
+    expect(styles).toMatch(
+      /\.ego-browser-request-state\.error\s*{[^}]*justify-content: flex-start;/
+    );
+  });
 });

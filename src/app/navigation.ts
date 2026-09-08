@@ -6,6 +6,7 @@ import {
   FolderSync,
   KeyRound,
   Laptop,
+  MonitorCog,
   MonitorUp,
   Server,
   Settings,
@@ -34,6 +35,7 @@ export const navigationItems: NavigationItem[] = [
   { id: "sessions", label: "nav.sessions", icon: TerminalSquare },
   { id: "sync", label: "nav.sync", icon: FolderSync },
   { id: "browser", label: "nav.browser", icon: MonitorUp },
+  { id: "ego-browser", label: "nav.egoBrowser", icon: MonitorCog },
   { id: "audit", label: "nav.audit", icon: FileClock },
   { id: "settings", label: "nav.settings", icon: Settings }
 ];

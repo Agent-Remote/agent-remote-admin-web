@@ -7,6 +7,9 @@ import type {
   Device,
   DeviceControlPolicy,
   DeviceSession,
+  EgoBrowserBinding,
+  EgoBrowserDevice,
+  EgoBrowserRequestState,
   NodeItem,
   NodeTask,
   Notice,
@@ -37,6 +40,12 @@ export type ConsolePageProps = {
   deviceControlPolicy: DeviceControlPolicy | undefined;
   deviceControlPolicyError: boolean;
   deviceControlPolicyLoading: boolean;
+  egoBrowserBindings: EgoBrowserBinding[];
+  egoBrowserDevices: EgoBrowserDevice[];
+  egoBrowserRequestStates: Record<string, EgoBrowserRequestState>;
+  egoBrowserError: boolean;
+  egoBrowserLoading: boolean;
+  egoBrowserRefreshing: boolean;
   loadAll: () => Promise<void>;
   logout: () => void;
   me: User;
