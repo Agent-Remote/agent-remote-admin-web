@@ -2,9 +2,9 @@
 
 All notable changes to this repository are recorded here.
 
-## v0.2.11 - 2026-09-08
+## v0.2.11 - 2026-09-09
 
-- Release metadata update.
+- feat: add the ego-browser administration console (d906416)
 
 ## v0.2.10 - 2026-09-05
 
@@ -21,19 +21,19 @@ All notable changes to this repository are recorded here.
 
 ## v0.2.7 - 2026-08-13
 
-- Release metadata update.
+- chore: release v0.2.7 (2d14cce)
 
 ## v0.2.6 - 2026-08-10
 
-- Release metadata update.
+- chore: release v0.2.6 (4afa580)
 
 ## v0.2.5 - 2026-08-09
 
-- Release metadata update.
+- chore: release v0.2.5 (b903dbd)
 
 ## v0.2.4 - 2026-08-09
 
-- Release metadata update.
+- chore: release v0.2.4 (7d3ab0d)
 
 ## v0.2.3 - 2026-08-09
 
@@ -48,7 +48,7 @@ All notable changes to this repository are recorded here.
 
 ## v0.2.1 - 2026-08-05
 
-- Release metadata update.
+- chore: release v0.2.1 (635092b)
 
 ## v0.2.0 - 2026-08-04
 
@@ -56,7 +56,7 @@ All notable changes to this repository are recorded here.
 
 ## v0.1.9 - 2026-08-04
 
-- Release metadata update.
+- chore: release v0.1.9 (c89fe91)
 
 ## v0.1.8 - 2026-08-03
 
@@ -64,7 +64,7 @@ All notable changes to this repository are recorded here.
 
 ## v0.1.7 - 2026-08-01
 
-- Release metadata update.
+- chore: release v0.1.7 (8ac5e1f)
 
 ## v0.1.6 - 2026-08-01
 
@@ -72,17 +72,15 @@ All notable changes to this repository are recorded here.
 
 ## v0.1.5 - 2026-07-31
 
-- Release metadata update.
+- chore: release v0.1.5 (f4ba9d2)
 
 ## v0.1.4 - 2026-07-31
 
-- Release metadata update.
+- chore: release v0.1.4 (d4b8278)
 
 ## v0.1.3 - 2026-07-31
 
 - fix: commit prepared release script (f27af54)
-- feat: add device control administration (fc6c64d)
-- test: cover top-level application routing (382a910)
 
 ## v0.1.0 - 2026-07-31
 
@@ -90,7 +88,7 @@ All notable changes to this repository are recorded here.
 - feat: expose approval, revocation, lease, and release evidence state
 - test: cover top-level application routing (382a910)
 
-## v0.0.6 - 2026-07-29
+## v0.0.6 - 2026-07-30
 
 - fix: remove vulnerable router runtime (0ddc70a)
 - chore: release v0.0.6 (b935b64)
@@ -147,6 +145,14 @@ All notable changes to this repository are recorded here.
 
 ## v0.0.2 - 2026-07-07
 
-- ci: allow manual release dispatch (aba783a)
 - chore: release v0.0.2 (1dde86d)
 - ci: add multi-arch release versioning (63ad682)
+
+## v0.0.1 - 2026-07-07
+
+- feat: add the remote browser workspace (9ff1966)
+- fix: allow an explicit browser locale (5ef5955)
+- feat: build the administration console (90540e1)
+- feat: expose Git synchronization controls (0099999)
+- refactor: establish the responsive admin console structure (cc0d644)
+- ci: add the Admin Web container release workflow (bb684f9)
