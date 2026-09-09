@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.12 - 2026-09-09
+
+- fix(release): repair changelog history (995edba)
+
 ## v0.2.11 - 2026-09-09
 
 - feat: add the ego-browser administration console (d906416)
