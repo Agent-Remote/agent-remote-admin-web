@@ -6,7 +6,8 @@ import {
   MonitorCog,
   RefreshCw,
   Square,
-  TriangleAlert
+  TriangleAlert,
+  Trash2
 } from "lucide-react";
 import { Fragment, useState } from "react";
 import { useConfirm } from "../../app/ConfirmProvider";
@@ -36,6 +37,7 @@ export function EgoBrowserPage({
   const { locale, t } = useI18n();
   const confirmAction = useConfirm();
   const [cancellingRequestId, setCancellingRequestId] = useState<string | null>(null);
+  const [pendingResourceId, setPendingResourceId] = useState<string | null>(null);
 
   async function cancelRequest(
     binding: EgoBrowserBinding,
@@ -119,12 +121,92 @@ export function EgoBrowserPage({
                 device.local_ego_browser_runtime_version ??
                 device.ego_lite_runtime_version ??
                 t("common.unknown");
+              const hasBindingHistory = egoBrowserBindings.some(
+                (binding) => binding.ego_browser_device_id === device.id
+              );
               return (
                 <ResourceRow
                   key={device.id}
                   title={`${t("egoBrowser.deviceLabel")} ${shortId(device.id)}`}
                   meta={`${t("egoBrowser.owner", { owner: owner?.display_name ?? shortId(device.user_id) })} · ${t("egoBrowser.runtime", { version: runtime })} · ${t("egoBrowser.skill", { version: device.skill_version ?? t("common.unknown") })} · ${t("egoBrowser.generation", { generation: device.generation })} · ${t("egoBrowser.lastSeen", { time: device.last_seen_at ? formatDate(device.last_seen_at, locale) : t("common.unknown") })}`}
-                  actions={<StatusPill status={device.status} />}
+                  actions={
+                    <>
+                      <StatusPill status={device.status} />
+                      <button
+                        className="danger-ghost"
+                        disabled={
+                          busy ||
+                          pendingResourceId !== null ||
+                          device.status === "revoked"
+                        }
+                        onClick={async () => {
+                          if (
+                            await confirmAction(
+                              t("egoBrowser.confirmRevokeDevice", {
+                                name: `${t("egoBrowser.deviceLabel")} ${shortId(device.id)}`
+                              })
+                            )
+                          ) {
+                            setPendingResourceId(`device:${device.id}`);
+                            try {
+                              await runAction(
+                                () =>
+                                  request(`/ego-browser/devices/${device.id}/revoke`, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                      generation: device.generation,
+                                      reason: me.role === "admin" ? "admin_revoke" : "user_revoke"
+                                    })
+                                  }).then(() => undefined),
+                                t("egoBrowser.deviceRevoked")
+                              );
+                            } finally {
+                              setPendingResourceId(null);
+                            }
+                          }
+                        }}
+                        type="button"
+                      >
+                        <Ban size={14} />
+                        {t("egoBrowser.revokeDevice")}
+                      </button>
+                      <button
+                        className="danger-ghost"
+                        disabled={
+                          busy ||
+                          pendingResourceId !== null ||
+                          device.status !== "revoked" ||
+                          hasBindingHistory
+                        }
+                        onClick={async () => {
+                          if (
+                            await confirmAction(
+                              t("egoBrowser.confirmDeleteDevice", {
+                                name: `${t("egoBrowser.deviceLabel")} ${shortId(device.id)}`
+                              })
+                            )
+                          ) {
+                            setPendingResourceId(`device:${device.id}`);
+                            try {
+                              await runAction(
+                                () =>
+                                  request(`/ego-browser/devices/${device.id}`, {
+                                    method: "DELETE"
+                                  }).then(() => undefined),
+                                t("egoBrowser.deviceDeleted")
+                              );
+                            } finally {
+                              setPendingResourceId(null);
+                            }
+                          }
+                        }}
+                        type="button"
+                      >
+                        <Trash2 size={14} />
+                        {t("common.delete")}
+                      </button>
+                    </>
+                  }
                 />
               );
             })}
@@ -141,8 +223,14 @@ export function EgoBrowserPage({
                 (item) => item.id === binding.tool_session_id
               );
               const sessionLabel = session?.project_key ?? shortId(binding.tool_session_id);
-              const stopDisabled = busy || terminalStatuses.has(binding.status);
-              const revokeDisabled = busy || binding.status === "revoked";
+              const stopDisabled =
+                busy || pendingResourceId !== null || terminalStatuses.has(binding.status);
+              const revokeDisabled =
+                busy || pendingResourceId !== null || binding.status === "revoked";
+              const deleteDisabled =
+                busy ||
+                pendingResourceId !== null ||
+                !terminalStatuses.has(binding.status);
               const requestState = egoBrowserRequestStates[binding.id];
               return (
                 <Fragment key={binding.id}>
@@ -160,17 +248,22 @@ export function EgoBrowserPage({
                                 t("egoBrowser.confirmStop", { name: sessionLabel })
                               )
                             ) {
-                              void runAction(
-                                () =>
-                                  request(`/ego-browser/bindings/${binding.id}/stop`, {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                      generation: binding.generation,
-                                      reason: me.role === "admin" ? "admin_stop" : "user_stop"
-                                    })
-                                  }).then(() => undefined),
-                                t("egoBrowser.stopped")
-                              );
+                              setPendingResourceId(`binding:${binding.id}`);
+                              try {
+                                await runAction(
+                                  () =>
+                                    request(`/ego-browser/bindings/${binding.id}/stop`, {
+                                      method: "POST",
+                                      body: JSON.stringify({
+                                        generation: binding.generation,
+                                        reason: me.role === "admin" ? "admin_stop" : "user_stop"
+                                      })
+                                    }).then(() => undefined),
+                                  t("egoBrowser.stopped")
+                                );
+                              } finally {
+                                setPendingResourceId(null);
+                              }
                             }
                           }}
                           type="button"
@@ -187,23 +280,56 @@ export function EgoBrowserPage({
                                 t("egoBrowser.confirmRevoke", { name: sessionLabel })
                               )
                             ) {
-                              void runAction(
-                                () =>
-                                  request(`/ego-browser/bindings/${binding.id}/revoke`, {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                      generation: binding.generation,
-                                      reason: me.role === "admin" ? "admin_revoke" : "user_revoke"
-                                    })
-                                  }).then(() => undefined),
-                                t("egoBrowser.revoked")
-                              );
+                              setPendingResourceId(`binding:${binding.id}`);
+                              try {
+                                await runAction(
+                                  () =>
+                                    request(`/ego-browser/bindings/${binding.id}/revoke`, {
+                                      method: "POST",
+                                      body: JSON.stringify({
+                                        generation: binding.generation,
+                                        reason: me.role === "admin" ? "admin_revoke" : "user_revoke"
+                                      })
+                                    }).then(() => undefined),
+                                  t("egoBrowser.revoked")
+                                );
+                              } finally {
+                                setPendingResourceId(null);
+                              }
                             }
                           }}
                           type="button"
                         >
                           <Ban size={14} />
                           {t("common.revoke")}
+                        </button>
+                        <button
+                          className="danger-ghost"
+                          disabled={deleteDisabled}
+                          onClick={async () => {
+                            if (
+                              await confirmAction(
+                                t("egoBrowser.confirmDeleteBinding", { name: sessionLabel })
+                              )
+                            ) {
+                              setPendingResourceId(`binding:${binding.id}`);
+                              try {
+                                await runAction(
+                                  () =>
+                                    request(`/ego-browser/bindings/${binding.id}`, {
+                                      method: "DELETE"
+                                    }).then(() => undefined),
+                                  t("egoBrowser.bindingDeleted")
+                                );
+                              } finally {
+                                setPendingResourceId(null);
+                              }
+                            }
+                          }}
+                          type="button"
+                        >
+                          <Trash2 size={14} />
+                          {t("common.delete")}
                         </button>
                       </>
                     }

@@ -264,6 +264,90 @@ describe("ego-browser page", () => {
     expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
   });
 
+  it("confirms device revoke and terminal resource deletion", async () => {
+    const revoke = makeConsoleProps({
+      egoBrowserDevices: [device],
+      users: [owner]
+    });
+    const revokeView = renderConsole(<EgoBrowserPage {...revoke.props} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke device" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(revoke.requestMock).toHaveBeenCalledWith(
+        `/ego-browser/devices/${device.id}/revoke`,
+        {
+          method: "POST",
+          body: JSON.stringify({ generation: 2, reason: "user_revoke" })
+        }
+      )
+    );
+    revokeView.unmount();
+
+    const revokedDevice = { ...device, status: "revoked" };
+    const terminalBinding = { ...binding, status: "stopped" };
+    const deletion = makeConsoleProps({
+      egoBrowserBindings: [terminalBinding],
+      egoBrowserDevices: [revokedDevice],
+      toolSessions: [toolSession],
+      users: [owner]
+    });
+    renderConsole(<EgoBrowserPage {...deletion.props} />);
+
+    const bindingRow = screen.getByText(/release-audit · 99999999/).closest(".resource-row");
+    expect(bindingRow).not.toBeNull();
+    fireEvent.click(within(bindingRow as HTMLElement).getByRole("button", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(deletion.requestMock).toHaveBeenCalledWith(
+        `/ego-browser/bindings/${binding.id}`,
+        { method: "DELETE" }
+      )
+    );
+  });
+
+  it("disables deletion until the server-side lifecycle prerequisites are met", () => {
+    const active = makeConsoleProps({
+      egoBrowserBindings: [binding],
+      egoBrowserDevices: [device],
+      toolSessions: [toolSession],
+      users: [owner]
+    });
+    const activeView = renderConsole(<EgoBrowserPage {...active.props} />);
+    const activeDeviceRow = screen.getByText(/Mac device aaaaaaaa/).closest(".resource-row");
+    const activeBindingRow = screen.getByText(/release-audit · 99999999/).closest(".resource-row");
+    expect(activeDeviceRow).not.toBeNull();
+    expect(activeBindingRow).not.toBeNull();
+    expect(within(activeDeviceRow as HTMLElement).getByRole("button", { name: "Delete" })).toBeDisabled();
+    expect(within(activeBindingRow as HTMLElement).getByRole("button", { name: "Delete" })).toBeDisabled();
+    activeView.unmount();
+
+    const revokedWithHistory = makeConsoleProps({
+      egoBrowserBindings: [{ ...binding, status: "stopped" }],
+      egoBrowserDevices: [{ ...device, status: "revoked" }],
+      toolSessions: [toolSession],
+      users: [owner]
+    });
+    renderConsole(<EgoBrowserPage {...revokedWithHistory.props} />);
+    const revokedDeviceRow = screen.getByText(/Mac device aaaaaaaa/).closest(".resource-row");
+    expect(revokedDeviceRow).not.toBeNull();
+    expect(within(revokedDeviceRow as HTMLElement).getByRole("button", { name: "Delete" })).toBeDisabled();
+  });
+
+  it("cancels device deletion without submitting a mutation", async () => {
+    const { props, requestMock, runAction } = makeConsoleProps({
+      egoBrowserDevices: [{ ...device, status: "revoked" }],
+      users: [owner]
+    });
+    renderConsole(<EgoBrowserPage {...props} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByText("Cancel"));
+    expect(requestMock).not.toHaveBeenCalled();
+    expect(runAction).not.toHaveBeenCalled();
+  });
+
   it("confirms exact request cancellation and protects the pending action", async () => {
     let finishAction: () => void = () => undefined;
     const pendingAction = new Promise<void>((resolve) => {
