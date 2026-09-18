@@ -876,6 +876,12 @@ p {
   gap: 7px;
 }
 
+.join-code-intent {
+  min-height: 32px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .status-pill,
 .badge {
   display: inline-flex;

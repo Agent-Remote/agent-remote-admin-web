@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import type { ApiClient } from "../api/client";
 import type {
@@ -10,6 +10,7 @@ import type {
   DeviceSession,
   EgoBrowserBinding,
   EgoBrowserDevice,
+  EgoBrowserLifecycleStatus,
   EgoBrowserRequest,
   EgoBrowserRequestState,
   NodeItem,
@@ -81,6 +82,28 @@ export function useConsoleData(
     ]
   });
   const egoBrowserBindings = (results[16].data ?? EMPTY) as EgoBrowserBinding[];
+  const egoBrowserStatusResult = useQuery({
+    queryKey: ["console", isAdmin ? "ego-browser-status-all" : "ego-browser-status-mine"],
+    queryFn: async () =>
+      (
+        await client.request<ApiResponse<EgoBrowserLifecycleStatus>>(
+          isAdmin ? "/ego-browser/status?all_users=true" : "/ego-browser/status"
+        )
+      ).data,
+    enabled: enabled && page === "ego-browser",
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+    staleTime: 2_000
+  });
+  const egoBrowserPolicyResult = useQuery({
+    queryKey: ["console", "ego-browser-policy"],
+    queryFn: async () =>
+      (await client.request<ApiResponse<import("../types").EgoBrowserPolicy>>("/ego-browser/policy")).data,
+    enabled: enabled && page === "ego-browser",
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000
+  });
   const requestBindings =
     enabled && page === "ego-browser"
       ? egoBrowserBindings.filter((binding) => binding.status === "active")
@@ -139,6 +162,11 @@ export function useConsoleData(
     portForwardsRefreshing: results[14].isFetching && !results[14].isPending,
     egoBrowserDevices: (results[15].data ?? EMPTY) as EgoBrowserDevice[],
     egoBrowserBindings,
+    egoBrowserStatus: egoBrowserStatusResult.data,
+    egoBrowserPolicy: egoBrowserPolicyResult.data,
+    egoBrowserPolicyError: egoBrowserPolicyResult.isError,
+    egoBrowserPolicyLoading:
+      egoBrowserPolicyResult.isPending && egoBrowserPolicyResult.fetchStatus !== "idle",
     egoBrowserRequestStates,
     egoBrowserLoading: [results[15], results[16]].some(
       (result) => result.isPending && result.fetchStatus !== "idle"
@@ -149,14 +177,20 @@ export function useConsoleData(
     ),
     refreshing:
       results.some((result) => result.isFetching) ||
+      egoBrowserStatusResult.isFetching ||
+      egoBrowserPolicyResult.isFetching ||
       requestResults.some((result) => result.isFetching),
     error:
       results.find((result) => result.error)?.error ??
+      egoBrowserStatusResult.error ??
+      egoBrowserPolicyResult.error ??
       requestResults.find((result) => result.error)?.error ??
       null,
     lastUpdatedAt: Math.max(
       0,
       ...results.map((result) => result.dataUpdatedAt),
+      egoBrowserStatusResult.dataUpdatedAt,
+      egoBrowserPolicyResult.dataUpdatedAt,
       ...requestResults.map((result) => result.dataUpdatedAt)
     ),
     refresh
@@ -196,6 +230,7 @@ const pageResources: Record<Page, ResourceName[]> = {
   "ego-browser": [
     "ego-browser-devices",
     "ego-browser-bindings",
+    "nodes",
     "users",
     "tool-sessions"
   ],

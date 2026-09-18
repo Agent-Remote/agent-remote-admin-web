@@ -75,6 +75,8 @@ export type EgoBrowserDevice = {
   public_key: string;
   encryption_public_key: string | null;
   generation: number;
+  /** Explicit Device identity generation; generation is a wire-compat alias. */
+  device_generation?: number;
   status: string;
   platform: "macos";
   release_profile:
@@ -137,6 +139,8 @@ export type EgoBrowserBinding = {
   lease_renew_failure_grace_seconds: number;
   absolute_ttl_until: string;
   generation: number;
+  /** Explicit binding lifecycle generation; generation is a wire-compat alias. */
+  binding_generation?: number;
   connected_at: string | null;
   stopped_at: string | null;
   stop_reason: string | null;
@@ -149,6 +153,7 @@ export type EgoBrowserRequest = {
   id: UUID;
   binding_id: UUID;
   generation: number;
+  binding_generation?: number;
   request_id: string;
   sequence: number;
   message_type: "execute";
@@ -162,6 +167,38 @@ export type EgoBrowserRequestState = {
   loading: boolean;
   error: boolean;
   refreshing: boolean;
+};
+
+export type EgoBrowserPolicy = {
+  enabled: boolean;
+  enrollment_enabled: boolean;
+  execution_admission: boolean;
+  protocol?: string;
+  authorization_mode?: string;
+  authorization_policy_version?: number;
+};
+
+export type EgoBrowserMachineState = {
+  installed: boolean | null;
+  enabled: boolean | null;
+  registered: boolean;
+  available: boolean | null;
+  connected: boolean | null;
+};
+
+export type EgoBrowserLifecycleStatus = {
+  state: EgoBrowserMachineState;
+  scope: "current_user" | "all_users";
+  local_observation: "unknown";
+  stale: boolean;
+  checked_at: string;
+};
+
+export type NodeJoinCode = {
+  node_id: UUID;
+  code: string;
+  expires_at: string;
+  ego_browser_enabled: boolean | null;
 };
 
 export type ToolAccount = {
@@ -227,6 +264,12 @@ export type NodeItem = {
   default_runtime_backend: string;
   runtime_policy: Record<string, unknown>;
   runtime_capabilities: Record<string, unknown>;
+  ego_browser_enabled?: boolean;
+  configured_enabled?: boolean;
+  effective_enabled?: boolean;
+  node_execution_allowed?: boolean;
+  enrollment_admission?: boolean;
+  execution_admission?: boolean;
   last_heartbeat_at: string | null;
   version: string | null;
   created_at: string;

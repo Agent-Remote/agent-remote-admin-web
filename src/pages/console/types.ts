@@ -9,6 +9,8 @@ import type {
   DeviceSession,
   EgoBrowserBinding,
   EgoBrowserDevice,
+  EgoBrowserLifecycleStatus,
+  EgoBrowserPolicy,
   EgoBrowserRequestState,
   NodeItem,
   NodeTask,
@@ -42,6 +44,10 @@ export type ConsolePageProps = {
   deviceControlPolicyLoading: boolean;
   egoBrowserBindings: EgoBrowserBinding[];
   egoBrowserDevices: EgoBrowserDevice[];
+  egoBrowserStatus?: EgoBrowserLifecycleStatus;
+  egoBrowserPolicy?: EgoBrowserPolicy;
+  egoBrowserPolicyError?: boolean;
+  egoBrowserPolicyLoading?: boolean;
   egoBrowserRequestStates: Record<string, EgoBrowserRequestState>;
   egoBrowserError: boolean;
   egoBrowserLoading: boolean;

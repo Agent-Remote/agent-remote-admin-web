@@ -31,6 +31,7 @@ export function makeConsoleProps(overrides: Partial<ConsolePageProps> = {}) {
     egoBrowserBindings: [],
     egoBrowserDevices: [],
     egoBrowserRequestStates: {},
+    egoBrowserStatus: undefined,
     egoBrowserError: false,
     egoBrowserLoading: false,
     egoBrowserRefreshing: false,

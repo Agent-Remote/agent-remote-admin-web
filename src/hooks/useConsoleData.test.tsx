@@ -98,19 +98,30 @@ describe("useConsoleData", () => {
   it("loads personal and administrator ego-browser scopes separately", async () => {
     const personal = setup("ego-browser", false);
     await waitFor(() => expect(personal.list).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(personal.request).toHaveBeenCalledTimes(2));
     expect(personal.list.mock.calls.map(([path]) => path).sort()).toEqual([
       "/ego-browser/bindings",
       "/ego-browser/devices",
       "/sessions"
     ]);
+    expect(personal.request.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/ego-browser/policy",
+      "/ego-browser/status"
+    ]);
 
     const administrator = setup("ego-browser", true);
-    await waitFor(() => expect(administrator.list).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(administrator.list).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(administrator.request).toHaveBeenCalledTimes(2));
     expect(administrator.list.mock.calls.map(([path]) => path).sort()).toEqual([
       "/ego-browser/bindings?all_users=true",
       "/ego-browser/devices?all_users=true",
+      "/nodes",
       "/sessions",
       "/users"
+    ]);
+    expect(administrator.request.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/ego-browser/policy",
+      "/ego-browser/status?all_users=true"
     ]);
   });
 

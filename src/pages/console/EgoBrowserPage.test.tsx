@@ -4,7 +4,9 @@ import { makeConsoleProps, renderConsole } from "../../test/console";
 import type {
   EgoBrowserBinding,
   EgoBrowserDevice,
+  EgoBrowserLifecycleStatus,
   EgoBrowserRequest,
+  NodeItem,
   ToolSession,
   User
 } from "../../types";
@@ -121,7 +123,166 @@ const activeRequest: EgoBrowserRequest = {
   created_at: "2026-09-06T00:00:02Z"
 };
 
+const lifecycleStatus: EgoBrowserLifecycleStatus = {
+  state: {
+    installed: null,
+    enabled: null,
+    registered: true,
+    available: null,
+    connected: null
+  },
+  scope: "current_user",
+  local_observation: "unknown",
+  stale: false,
+  checked_at: "2026-09-06T00:00:02Z"
+};
+
+const node: NodeItem = {
+  id: "node-1",
+  name: "US Node",
+  status: "active",
+  region_code: "US",
+  tags: ["gpu"],
+  weight: 100,
+  wireguard_ip: "10.0.0.2",
+  wireguard_public_key: null,
+  wireguard_endpoint: null,
+  ssh_host: "node.local",
+  ssh_port: 22,
+  ssh_user: "agent-remote",
+  supported_tool_types: ["claude"],
+  allowed_runtime_backends: ["docker_sandbox"],
+  default_runtime_backend: "docker_sandbox",
+  runtime_policy: {},
+  runtime_capabilities: {},
+  ego_browser_enabled: true,
+  configured_enabled: true,
+  effective_enabled: true,
+  node_execution_allowed: true,
+  last_heartbeat_at: null,
+  version: "1.0.0",
+  created_at: "2026-09-06T00:00:00Z",
+  updated_at: "2026-09-06T00:00:00Z"
+};
+
 describe("ego-browser page", () => {
+  it("lets administrators issue and revoke Node join codes, but hides them from users", async () => {
+    const admin = makeConsoleProps({ me: { ...owner, role: "admin" }, nodes: [node] });
+    admin.requestMock.mockImplementation(async (path) =>
+      path === "/nodes/node-1/join-code"
+        ? {
+            data: {
+              node_id: node.id,
+              code: "join-code-123",
+              expires_at: "2099-01-01T00:00:00Z",
+              ego_browser_enabled: true
+            }
+          }
+        : undefined
+    );
+    const adminView = renderConsole(<EgoBrowserPage {...admin.props} />);
+
+    expect(screen.getByRole("heading", { name: "Node join codes" })).toBeVisible();
+    const enableIntent = screen.getByRole("checkbox", {
+      name: "Enable ego-browser for this enrollment"
+    });
+    expect(enableIntent).not.toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Generate join code" }));
+    await waitFor(() =>
+      expect(admin.requestMock).toHaveBeenCalledWith("/nodes/node-1/join-code", {
+        method: "POST",
+        body: JSON.stringify({ expires_in_seconds: 900, ego_browser_enabled: false })
+      })
+    );
+    expect(screen.getByLabelText("One-time Node join code")).toHaveTextContent("join-code-123");
+
+    fireEvent.click(enableIntent);
+    fireEvent.click(screen.getByRole("button", { name: "Replace join code" }));
+    await waitFor(() =>
+      expect(admin.requestMock).toHaveBeenLastCalledWith("/nodes/node-1/join-code", {
+        method: "POST",
+        body: JSON.stringify({ expires_in_seconds: 900, ego_browser_enabled: true })
+      })
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke join code" }));
+    await waitFor(() =>
+      expect(admin.requestMock).toHaveBeenCalledWith("/nodes/node-1/join-code/revoke", {
+        method: "POST"
+      })
+    );
+    adminView.unmount();
+
+    const user = makeConsoleProps({ nodes: [node] });
+    renderConsole(<EgoBrowserPage {...user.props} />);
+    expect(screen.queryByRole("heading", { name: "Node join codes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Generate join code" })).not.toBeInTheDocument();
+  });
+
+  it("keeps setup, connect, resume, and full-trust authorization local-only", () => {
+    const { props, requestMock } = makeConsoleProps({
+      egoBrowserBindings: [binding],
+      egoBrowserDevices: [device],
+      me: { ...owner, role: "admin" },
+      nodes: [node],
+      toolSessions: [toolSession],
+      users: [owner]
+    });
+    renderConsole(<EgoBrowserPage {...props} />);
+
+    expect(screen.getByText(/Setup and ensure, connect, resume/)).toHaveTextContent(
+      "must be completed by the same macOS user in the local agent-remote CLI"
+    );
+    for (const name of ["Setup", "Ensure", "Connect", "Resume", "Authorize full trust"]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+    }
+    expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it("does not project an active binding as connected while execution admission is closed", () => {
+    const { props } = makeConsoleProps({
+      egoBrowserBindings: [binding],
+      egoBrowserDevices: [device],
+      egoBrowserStatus: {
+        ...lifecycleStatus,
+        state: { ...lifecycleStatus.state, available: false, connected: false }
+      },
+      egoBrowserPolicy: {
+        enabled: true,
+        enrollment_enabled: true,
+        execution_admission: false
+      }
+    });
+    renderConsole(<EgoBrowserPage {...props} />);
+
+    const connectedState = screen.getByText("Connected").parentElement;
+    expect(connectedState).not.toBeNull();
+    expect(within(connectedState as HTMLElement).getByText("disabled")).toBeVisible();
+  });
+
+  it("keeps local-only lifecycle facts unknown instead of inferring them from Server rows", () => {
+    const { props } = makeConsoleProps({
+      egoBrowserBindings: [binding],
+      egoBrowserDevices: [device],
+      egoBrowserPolicy: {
+        enabled: true,
+        enrollment_enabled: true,
+        execution_admission: true
+      },
+      egoBrowserStatus: lifecycleStatus
+    });
+    renderConsole(<EgoBrowserPage {...props} />);
+
+    for (const label of ["Installed", "Enabled", "Available", "Connected"]) {
+      const item = screen.getByText(label).parentElement;
+      expect(item).not.toBeNull();
+      expect(within(item as HTMLElement).getByText("unknown")).toBeVisible();
+    }
+    const registered = screen.getByText("Registered").parentElement;
+    expect(registered).not.toBeNull();
+    expect(within(registered as HTMLElement).getByText("active")).toBeVisible();
+  });
+
   it("shows full-trust state and confirms administrator stop and revoke controls", async () => {
     const { props, requestMock } = makeConsoleProps({
       egoBrowserBindings: [binding],
@@ -133,7 +294,9 @@ describe("ego-browser page", () => {
     renderConsole(<EgoBrowserPage {...props} />);
 
     expect(screen.getByRole("heading", { name: "Full-trust local execution" })).toBeVisible();
-    expect(screen.getByText(/same macOS user/)).toHaveTextContent("without an App Sandbox");
+    expect(screen.getByText(/The selected remote fclaude session/)).toHaveTextContent(
+      "without an App Sandbox"
+    );
     expect(screen.getByText(/not Apple notarized/)).toBeVisible();
     expect(screen.getByText(/Runtime 0.4.7.4/)).toBeVisible();
     expect(screen.getByText(/Protocol ego-browser-bridge-v1/)).toBeVisible();
@@ -145,7 +308,7 @@ describe("ego-browser page", () => {
         `/ego-browser/bindings/${binding.id}/stop`,
         {
           method: "POST",
-          body: JSON.stringify({ generation: 3, reason: "admin_stop" })
+          body: JSON.stringify({ binding_generation: 3, generation: 3, reason: "admin_stop" })
         }
       )
     );
@@ -157,7 +320,7 @@ describe("ego-browser page", () => {
         `/ego-browser/bindings/${binding.id}/revoke`,
         {
           method: "POST",
-          body: JSON.stringify({ generation: 3, reason: "admin_revoke" })
+          body: JSON.stringify({ binding_generation: 3, generation: 3, reason: "admin_revoke" })
         }
       )
     );
@@ -239,7 +402,7 @@ describe("ego-browser page", () => {
         `/ego-browser/bindings/${binding.id}/stop`,
         {
           method: "POST",
-          body: JSON.stringify({ generation: 3, reason: "user_stop" })
+          body: JSON.stringify({ binding_generation: 3, generation: 3, reason: "user_stop" })
         }
       )
     );
@@ -278,7 +441,7 @@ describe("ego-browser page", () => {
         `/ego-browser/devices/${device.id}/revoke`,
         {
           method: "POST",
-          body: JSON.stringify({ generation: 2, reason: "user_revoke" })
+          body: JSON.stringify({ device_generation: 2, generation: 2, reason: "user_revoke" })
         }
       )
     );
@@ -387,7 +550,7 @@ describe("ego-browser page", () => {
         `/ego-browser/bindings/${binding.id}/requests/request%2F123/cancel`,
         {
           method: "POST",
-          body: JSON.stringify({ generation: binding.generation, sequence: 19 })
+          body: JSON.stringify({ binding_generation: binding.generation, generation: binding.generation, sequence: 19 })
         }
       )
     );
