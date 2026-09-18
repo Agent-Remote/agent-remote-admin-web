@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.14 - 2026-09-18
+
+- feat(ego-browser): add managed lifecycle controls (152ce8e)
+- feat(ego-browser): add resource deletion controls (d07538b)
+
 ## v0.2.13 - 2026-09-09
 
 - chore: prepare v0.2.13 from v0.2.12 with repository-owned version metadata only.
