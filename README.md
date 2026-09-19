@@ -22,6 +22,11 @@ The `/app/forwards` console page lists personal forwards for users and the full 
 
 ## Architecture
 
+The ego-browser page separates Server records (registered devices, active bindings, and healthy
+unexpired leases) from local Mac state. Local installation and readiness are shown as not reported;
+check them with `agent-remote ego-browser status` on the Mac running the Bridge. Server admission
+switches do not prove local execution readiness.
+
 - React Router keeps the active console page in `/app/:page`, including refresh, back, and forward navigation.
 - TanStack Query loads only the resources required by the active page, refreshes live resources automatically, and revalidates after reconnect or window focus.
 - Console features live in `src/pages/console`, while shared application infrastructure lives in `src/app`, `src/hooks`, and `src/components`.

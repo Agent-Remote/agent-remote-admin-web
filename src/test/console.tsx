@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { vi } from "vitest";
 import { ConfirmProvider } from "../app/ConfirmProvider";
 import { I18nProvider } from "../i18n/I18nProvider";
+import type { Locale } from "../i18n/messages";
 import type { AppRequest } from "../types";
 import type { ConsolePageProps } from "../pages/console/types";
 
@@ -71,8 +72,8 @@ export function makeConsoleProps(overrides: Partial<ConsolePageProps> = {}) {
   return { props, requestMock, runAction };
 }
 
-export function renderConsole(element: ReactElement) {
-  localStorage.setItem("agentRemoteLocale", "en");
+export function renderConsole(element: ReactElement, locale: Locale = "en") {
+  localStorage.setItem("agentRemoteLocale", locale);
   return render(
     <I18nProvider>
       <ConfirmProvider>{element}</ConfirmProvider>

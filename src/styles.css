@@ -437,6 +437,57 @@ p {
   gap: 16px;
 }
 
+.ego-browser-lifecycle,
+.ego-browser-local-state {
+  display: grid;
+  gap: 12px;
+}
+
+.ego-browser-state-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.ego-browser-state-item {
+  display: grid;
+  gap: 6px;
+}
+
+.ego-browser-state-item dt {
+  color: var(--text-subtle);
+  font-size: 13px;
+}
+
+.ego-browser-state-item dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ego-browser-admission,
+.ego-browser-local-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+}
+
+.ego-browser-local-state {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.ego-browser-local-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ego-browser-local-state code {
+  overflow-wrap: anywhere;
+}
+
 .ego-browser-columns {
   display: grid;
   grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);

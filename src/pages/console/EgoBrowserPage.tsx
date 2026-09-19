@@ -10,7 +10,7 @@ import {
   TriangleAlert,
   Trash2
 } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useState } from "react";
 import { useConfirm } from "../../app/ConfirmProvider";
 import { EmptyBlock, PanelTitle, ResourceRow, StatusPill } from "../../components/ui";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -20,7 +20,6 @@ import type {
   ApiResponse,
   EgoBrowserBinding,
   EgoBrowserDevice,
-  EgoBrowserLifecycleStatus,
   EgoBrowserPolicy,
   EgoBrowserRequest,
   NodeItem,
@@ -35,7 +34,6 @@ export function EgoBrowserPage({
   egoBrowserBindings,
   egoBrowserDevices,
   egoBrowserRequestStates,
-  egoBrowserStatus,
   egoBrowserError,
   egoBrowserLoading,
   egoBrowserPolicy,
@@ -59,10 +57,23 @@ export function EgoBrowserPage({
   const [joinCodeBusy, setJoinCodeBusy] = useState<string | null>(null);
   const [joinCodeError, setJoinCodeError] = useState<string | null>(null);
 
-  const lifecycle = useMemo(
-    () => deriveLifecycle(egoBrowserStatus),
-    [egoBrowserStatus]
-  );
+  const activeBindings = egoBrowserBindings.filter((binding) => binding.status === "active");
+  const now = Date.now();
+  const serverSummary: Array<{ label: MessageKey; count: number }> = [
+    {
+      label: "egoBrowser.registeredDevices",
+      count: egoBrowserDevices.filter((device) => device.status === "active").length
+    },
+    { label: "egoBrowser.activeBindings", count: activeBindings.length },
+    {
+      label: "egoBrowser.healthyLeases",
+      count: activeBindings.filter((binding) =>
+        binding.lease_health === "healthy" &&
+        Date.parse(binding.lease_until ?? "") > now &&
+        Date.parse(binding.absolute_ttl_until) > now
+      ).length
+    }
+  ];
 
   async function issueJoinCode(node: NodeItem) {
     setJoinCodeBusy(node.id);
@@ -151,24 +162,28 @@ export function EgoBrowserPage({
         </div>
       </section>
 
-      <section className="panel ego-browser-lifecycle" aria-labelledby="ego-browser-lifecycle-title">
+      <section className="panel ego-browser-lifecycle" aria-label={t("egoBrowser.lifecycleTitle")}>
         <PanelTitle icon={MonitorCog} title={t("egoBrowser.lifecycleTitle")} />
-        <div className="ego-browser-state-grid" role="list">
-          {lifecycle.map((item) => (
-            <div className="ego-browser-state-item" key={item.key} role="listitem">
-              <span>{t(item.label)}</span>
-              <StatusPill
-                status={item.value === null ? "unknown" : item.value ? "active" : "disabled"}
-              />
+        <p className="muted-copy">
+          {t(me.role === "admin" ? "egoBrowser.scopeAll" : "egoBrowser.scopeMine")}
+        </p>
+        <dl className="ego-browser-state-grid" aria-busy={egoBrowserLoading || egoBrowserRefreshing}>
+          {serverSummary.map((item) => (
+            <div className="ego-browser-state-item" key={item.label}>
+              <dt>{t(item.label)}</dt>
+              <dd>{egoBrowserError
+                ? t("egoBrowser.admissionUnavailable")
+                : egoBrowserLoading
+                  ? t("egoBrowser.admissionLoading")
+                  : item.count}</dd>
             </div>
           ))}
-        </div>
-        <p className="muted-copy">{t("egoBrowser.lifecycleBoundary")}</p>
+        </dl>
         <div className="ego-browser-admission" aria-label={t("egoBrowser.admissionTitle")}>
           <span>
             {t("egoBrowser.enrollmentAdmission")}: {egoBrowserPolicyLoading
               ? t("egoBrowser.admissionLoading")
-              : egoBrowserPolicyError
+              : egoBrowserPolicyError || !egoBrowserPolicy
                 ? t("egoBrowser.admissionUnavailable")
                 : egoBrowserPolicy?.enrollment_enabled
                   ? t("common.enabled")
@@ -177,12 +192,21 @@ export function EgoBrowserPage({
           <span>
             {t("egoBrowser.executionAdmission")}: {egoBrowserPolicyLoading
               ? t("egoBrowser.admissionLoading")
-              : egoBrowserPolicyError
+              : egoBrowserPolicyError || !egoBrowserPolicy
                 ? t("egoBrowser.admissionUnavailable")
                 : egoBrowserPolicy?.execution_admission
                   ? t("common.enabled")
                   : t("common.disabled")}
           </span>
+        </div>
+        <div className="ego-browser-local-state">
+          <div className="ego-browser-local-heading">
+            <h3>{t("egoBrowser.localState")}</h3>
+            <span className="status-pill">{t("egoBrowser.localNotReported")}</span>
+          </div>
+          <p className="muted-copy">{t("egoBrowser.localBoundary")}</p>
+          <code>agent-remote ego-browser status</code>
+          <p className="muted-copy">{t("egoBrowser.lifecycleBoundary")}</p>
         </div>
       </section>
 
@@ -613,19 +637,6 @@ export function EgoBrowserPage({
       ) : null}
     </div>
   );
-}
-
-function deriveLifecycle(
-  status?: EgoBrowserLifecycleStatus
-): Array<{ key: string; label: MessageKey; value: boolean | null }> {
-  const state = status?.state;
-  return [
-    { key: "installed", label: "egoBrowser.stateInstalled", value: state?.installed ?? null },
-    { key: "enabled", label: "egoBrowser.stateEnabled", value: state?.enabled ?? null },
-    { key: "registered", label: "egoBrowser.stateRegistered", value: state?.registered ?? null },
-    { key: "available", label: "egoBrowser.stateAvailable", value: state?.available ?? null },
-    { key: "connected", label: "egoBrowser.stateConnected", value: state?.connected ?? null }
-  ];
 }
 
 function deviceGeneration(device: Pick<EgoBrowserDevice, "generation" | "device_generation">): number {

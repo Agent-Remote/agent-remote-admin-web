@@ -22,6 +22,10 @@ Runtime 控制包括节点 backend 允许列表、默认值、策略和能力检
 
 ## 架构
 
+ego-browser 页面分别展示服务器记录（有效登记设备、活动绑定和未过期的健康租约）与本机
+Mac 状态。本机安装和就绪状态显示为“未上报”，请在运行 Bridge 的 Mac 上通过
+`agent-remote ego-browser status` 检查。服务器准入开关不代表本机实时可执行。
+
 - React Router 将当前控制台页面保存在 `/app/:page`，支持刷新、前进和后退。
 - TanStack Query 只加载当前页面需要的资源，自动刷新活跃资源，并在网络恢复或窗口重新聚焦时重新校验。
 - 控制台功能页面位于 `src/pages/console`，共享应用基础设施位于 `src/app`、`src/hooks` 和 `src/components`。

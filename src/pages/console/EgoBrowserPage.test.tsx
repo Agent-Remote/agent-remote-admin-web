@@ -123,6 +123,12 @@ const activeRequest: EgoBrowserRequest = {
   created_at: "2026-09-06T00:00:02Z"
 };
 
+const liveBinding: EgoBrowserBinding = {
+  ...binding,
+  lease_until: "2099-01-01T00:00:00Z",
+  absolute_ttl_until: "2099-01-02T00:00:00Z"
+};
+
 const lifecycleStatus: EgoBrowserLifecycleStatus = {
   state: {
     installed: null,
@@ -239,7 +245,7 @@ describe("ego-browser page", () => {
     expect(requestMock).not.toHaveBeenCalled();
   });
 
-  it("does not project an active binding as connected while execution admission is closed", () => {
+  it("separates active Server bindings from disabled execution admission", () => {
     const { props } = makeConsoleProps({
       egoBrowserBindings: [binding],
       egoBrowserDevices: [device],
@@ -255,15 +261,17 @@ describe("ego-browser page", () => {
     });
     renderConsole(<EgoBrowserPage {...props} />);
 
-    const connectedState = screen.getByText("Connected").parentElement;
-    expect(connectedState).not.toBeNull();
-    expect(within(connectedState as HTMLElement).getByText("disabled")).toBeVisible();
+    const summary = screen.getByRole("region", { name: "Server state" });
+    expect(within(summary).getByText("Active bindings").parentElement).toHaveTextContent("1");
+    expect(within(summary).getByText("Server execution: disabled")).toBeVisible();
+    expect(within(summary).queryByText("Connected")).not.toBeInTheDocument();
+    expect(within(summary).getByText("Not reported")).toBeVisible();
   });
 
-  it("keeps local-only lifecycle facts unknown instead of inferring them from Server rows", () => {
+  it("shows healthy Server records without claiming local readiness", () => {
     const { props } = makeConsoleProps({
-      egoBrowserBindings: [binding],
-      egoBrowserDevices: [device],
+      egoBrowserBindings: [liveBinding],
+      egoBrowserDevices: [device, { ...device, id: "revoked-device", status: "revoked" }],
       egoBrowserPolicy: {
         enabled: true,
         enrollment_enabled: true,
@@ -273,14 +281,50 @@ describe("ego-browser page", () => {
     });
     renderConsole(<EgoBrowserPage {...props} />);
 
-    for (const label of ["Installed", "Enabled", "Available", "Connected"]) {
-      const item = screen.getByText(label).parentElement;
-      expect(item).not.toBeNull();
-      expect(within(item as HTMLElement).getByText("unknown")).toBeVisible();
+    const summary = screen.getByRole("region", { name: "Server state" });
+    for (const label of ["Registered devices", "Active bindings", "Healthy leases"]) {
+      expect(within(summary).getByText(label).parentElement).toHaveTextContent("1");
     }
-    const registered = screen.getByText("Registered").parentElement;
-    expect(registered).not.toBeNull();
-    expect(within(registered as HTMLElement).getByText("active")).toBeVisible();
+    expect(within(summary).queryByText("unknown")).not.toBeInTheDocument();
+    expect(within(summary).getByText("Not reported")).toBeVisible();
+    expect(within(summary).getByText("agent-remote ego-browser status")).toBeVisible();
+    expect(within(summary).getByText(/Your devices and bindings/)).toBeVisible();
+  });
+
+  it.each([
+    { status: "paused" },
+    { lease_health: "expired" },
+    { lease_until: "2000-01-01T00:00:00Z" },
+    { lease_until: null },
+    { absolute_ttl_until: "2000-01-02T00:00:00Z" }
+  ] satisfies Partial<EgoBrowserBinding>[])("excludes inactive or expired leases: %j", (overrides) => {
+    const { props } = makeConsoleProps({ egoBrowserBindings: [{ ...liveBinding, ...overrides }] });
+    renderConsole(<EgoBrowserPage {...props} />);
+    const summary = screen.getByRole("region", { name: "Server state" });
+    expect(within(summary).getByText("Healthy leases").parentElement).toHaveTextContent("0");
+  });
+
+  it.each([
+    { egoBrowserLoading: true, expected: "checking" },
+    { egoBrowserError: true, expected: "unavailable" }
+  ])("does not render missing or failed Server data as zero: %j", ({ expected, ...state }) => {
+    const { props } = makeConsoleProps(state);
+    renderConsole(<EgoBrowserPage {...props} />);
+    const summary = screen.getByRole("region", { name: "Server state" });
+    for (const label of ["Registered devices", "Active bindings", "Healthy leases"]) {
+      expect(within(summary).getByText(label).parentElement).toHaveTextContent(expected);
+    }
+    expect(within(summary).getByText("Server execution: unavailable")).toBeVisible();
+  });
+
+  it("localizes the Server summary and unreported local state for administrators", () => {
+    const { props } = makeConsoleProps({ me: { ...owner, role: "admin" } });
+    renderConsole(<EgoBrowserPage {...props} />, "zh-CN");
+    const summary = screen.getByRole("region", { name: "服务器状态" });
+    expect(within(summary).getByText(/全部用户/)).toBeVisible();
+    expect(within(summary).getByText("有效登记设备").parentElement).toHaveTextContent("0");
+    expect(within(summary).getByText("未上报")).toBeVisible();
+    expect(within(summary).queryByText("unknown")).not.toBeInTheDocument();
   });
 
   it("shows full-trust state and confirms administrator stop and revoke controls", async () => {
