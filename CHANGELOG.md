@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.15 - 2026-09-19
+
+- fix(ego-browser): distinguish server state from unreported local readiness (628f444)
+
 ## v0.2.14 - 2026-09-18
 
 - feat(ego-browser): add managed lifecycle controls (152ce8e)
