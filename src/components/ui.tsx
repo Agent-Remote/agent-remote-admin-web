@@ -273,10 +273,42 @@ export function ResponsiveForm({
   );
 }
 
-export function copyToClipboard(value: string, onDone: () => void) {
-  if (navigator.clipboard) {
-    void navigator.clipboard.writeText(value).then(onDone);
-    return;
+/** Copy explicitly, reporting failure instead of claiming success without access. */
+export async function copyToClipboard(value: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // Older/insecure contexts may still permit an explicit legacy copy.
   }
-  onDone();
+  const focused = document.activeElement;
+  const selection = window.getSelection();
+  const ranges = selection ? Array.from({ length: selection.rangeCount }, (_, i) => selection.getRangeAt(i).cloneRange()) : [];
+  const inputSelection = focused instanceof HTMLInputElement || focused instanceof HTMLTextAreaElement
+    ? { start: focused.selectionStart, end: focused.selectionEnd, direction: focused.selectionDirection }
+    : null;
+  const field = document.createElement("textarea");
+  field.value = value;
+  field.setAttribute("readonly", "");
+  field.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+  document.body.appendChild(field);
+  try {
+    field.select();
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    field.remove();
+    if (focused instanceof HTMLElement) focused.focus({ preventScroll: true });
+    if (inputSelection && (focused instanceof HTMLInputElement || focused instanceof HTMLTextAreaElement)
+        && inputSelection.start !== null && inputSelection.end !== null) {
+      focused.setSelectionRange(inputSelection.start, inputSelection.end, inputSelection.direction ?? undefined);
+    }
+    if (selection) {
+      selection.removeAllRanges();
+      ranges.forEach((range) => selection.addRange(range));
+    }
+  }
 }

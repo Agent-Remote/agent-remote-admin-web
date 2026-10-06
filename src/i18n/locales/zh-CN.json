@@ -233,6 +233,7 @@
   "sessions.deleteAll": "清理已结束会话",
   "sessions.deletedAll": "已删除所有停止、中断和失败的会话",
   "sessions.confirmDeleteAll": "确认永久删除这 {count} 个已停止、中断或失败的会话？此操作无法撤销。",
+  "sessions.copyManually": "无法自动复制，请手动选中并复制此命令：{command}",
   "sessions.attach": "连接",
   "sessions.stop": "停止",
   "sessions.account": "账户",

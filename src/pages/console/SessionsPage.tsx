@@ -101,9 +101,11 @@ export function SessionsPage({ toolSessions, accounts, workspaces, busy, request
                       const response = await request<ApiResponse<{ ssh_command: string }>>(`/sessions/${session.id}/attach`, {
                         method: "POST"
                       });
-                      copyToClipboard(response.data.ssh_command, () =>
-                        setNotice({ kind: "info", message: response.data.ssh_command })
-                      );
+                      const copied = await copyToClipboard(response.data.ssh_command);
+                      setNotice({
+                        kind: copied ? "info" : "error",
+                        message: copied ? response.data.ssh_command : t("sessions.copyManually", { command: response.data.ssh_command })
+                      });
                     });
                   }}
                   type="button"

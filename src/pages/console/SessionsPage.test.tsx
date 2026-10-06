@@ -133,6 +133,7 @@ describe("SessionsPage", () => {
   });
 
   it("creates, attaches to, and confirms stopping a running session", async () => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } });
     const running = session("running", "running");
     const { props, request } = renderPage(
       [running],
@@ -159,7 +160,10 @@ describe("SessionsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Attach" }));
     await waitFor(() => expect(request).toHaveBeenCalledWith("/sessions/running/attach", { method: "POST" }));
-    expect(props.setNotice).toHaveBeenCalledWith({ kind: "info", message: "ssh node-1" });
+    await waitFor(() => expect(props.setNotice).toHaveBeenCalledWith({ kind: "info", message: "ssh node-1" }));
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+    fireEvent.click(screen.getByRole("button", { name: "Attach" }));
+    await waitFor(() => expect(props.setNotice).toHaveBeenCalledWith({ kind: "error", message: "Automatic copy was unavailable. Select and copy this command manually: ssh node-1" }));
     fireEvent.click(screen.getByRole("button", { name: "Stop" }));
     fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() => expect(request).toHaveBeenCalledWith("/sessions/running/stop", { method: "POST" }));

@@ -233,6 +233,7 @@
   "sessions.deleteAll": "Clear ended sessions",
   "sessions.deletedAll": "All stopped, interrupted, and failed sessions were deleted.",
   "sessions.confirmDeleteAll": "Permanently delete these {count} stopped, interrupted, or failed sessions? This cannot be undone.",
+  "sessions.copyManually": "Automatic copy was unavailable. Select and copy this command manually: {command}",
   "sessions.attach": "Attach",
   "sessions.stop": "Stop",
   "sessions.account": "Account",
