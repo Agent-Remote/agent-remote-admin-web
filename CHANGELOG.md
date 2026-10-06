@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.16 - 2026-10-06
+
+- fix(deps): patch source map denial of service advisory (9282024)
+- fix(clipboard): report copy failures and preserve browser focus (604e59d)
+
 ## v0.2.15 - 2026-09-19
 
 - fix(ego-browser): distinguish server state from unreported local readiness (628f444)
