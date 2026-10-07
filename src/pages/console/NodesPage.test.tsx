@@ -37,6 +37,8 @@ describe("NodesPage", () => {
     const updateBody = JSON.parse(String(updateCall?.[1]?.body));
     expect(updateBody.runtime_policy).toMatchObject({
       cpu_quota_percent: 250,
+      temporary_storage: "disk",
+      temporary_size_bytes: 17179869184,
       port_forwarding: {
         enabled: true,
         min_port: 1024,
@@ -62,8 +64,24 @@ describe("NodesPage", () => {
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "EU Node" } });
     fireEvent.submit(screen.getByLabelText("Name").closest("form")!);
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/nodes", expect.objectContaining({ method: "POST" })));
+    const createCall = requestMock.mock.calls.find(([path]) => path === "/nodes");
+    expect(JSON.parse(String(createCall?.[1]?.body)).runtime_policy).toMatchObject({
+      temporary_storage: "disk", temporary_size_bytes: 17179869184
+    });
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/nodes/node-1", { method: "DELETE" }));
+  });
+
+  it("preserves explicit tmpfs mode and configured disk capacity when editing a node", async () => {
+    const configured = { ...node, runtime_policy: { temporary_storage: "tmpfs", temporary_size_bytes: 8589934592, tmpfs_size_bytes: 536870912 } };
+    const { props, requestMock } = makeConsoleProps({ nodes: [configured] });
+    renderConsole(<NodesPage {...props} isAdmin />);
+    fireEvent.click(screen.getByText("Edit runtime policy"));
+    expect(screen.getAllByLabelText("Native temporary storage")[0]).toHaveValue("tmpfs");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(requestMock).toHaveBeenCalledWith("/nodes/node-1", expect.objectContaining({ method: "PATCH" })));
+    const call = requestMock.mock.calls.find(([path]) => path === "/nodes/node-1");
+    expect(JSON.parse(String(call?.[1]?.body)).runtime_policy).toMatchObject(configured.runtime_policy);
   });
 });

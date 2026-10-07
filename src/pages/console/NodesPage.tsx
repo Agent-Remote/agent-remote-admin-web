@@ -30,6 +30,7 @@ import {
   tagsText
 } from "../../utils/format";
 import { TaskRow } from "./ResourceDetails";
+import { TemporaryStoragePolicyFields, readTemporaryStoragePolicy } from "./TemporaryStoragePolicyFields";
 import type { ConsolePageProps } from "./types";
 export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction, setNotice }: ConsolePageProps & { isAdmin: boolean }) {
   const { t } = useI18n();
@@ -70,7 +71,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
             cpu_quota_percent: Number(form.get("cpu_quota_percent") ?? 200),
             tasks_max: Number(form.get("tasks_max") ?? 512),
             limit_nofile: Number(form.get("limit_nofile") ?? 8192),
-            tmpfs_size_bytes: Number(form.get("tmpfs_size_bytes") ?? 1073741824),
+            ...readTemporaryStoragePolicy(form),
             network_allowlist: splitList(String(form.get("network_allowlist") ?? "")),
             port_forwarding: readPortForwardingPolicy(form)
           },
@@ -106,7 +107,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
             cpu_quota_percent: Number(form.get("cpu_quota_percent")),
             tasks_max: Number(form.get("tasks_max")),
             limit_nofile: Number(form.get("limit_nofile")),
-            tmpfs_size_bytes: Number(form.get("tmpfs_size_bytes")),
+            ...readTemporaryStoragePolicy(form),
             network_allowlist: splitList(String(form.get("network_allowlist") ?? "")),
             port_forwarding: readPortForwardingPolicy(form)
           }
@@ -220,7 +221,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
                   <Field name="cpu_quota_percent" label={t("nodes.cpuQuota")} type="number" defaultValue={policyNumber(node, "cpu_quota_percent", 200)} />
                   <Field name="tasks_max" label={t("nodes.tasksMax")} type="number" defaultValue={policyNumber(node, "tasks_max", 512)} />
                   <Field name="limit_nofile" label={t("nodes.nofile")} type="number" defaultValue={policyNumber(node, "limit_nofile", 8192)} />
-                  <Field name="tmpfs_size_bytes" label={t("nodes.tmpSize")} type="number" defaultValue={policyNumber(node, "tmpfs_size_bytes", 1073741824)} />
+                  <TemporaryStoragePolicyFields node={node} />
                   <Field name="network_allowlist" label={t("nodes.networkAllowlist")} defaultValue={policyList(node, "network_allowlist")} />
                   <PortForwardPolicyFields node={node} />
                   <button className="primary" disabled={busy}>
@@ -255,7 +256,7 @@ export function NodesPage({ nodes, nodeTasks, isAdmin, busy, request, runAction,
           <Field name="cpu_quota_percent" label={t("nodes.cpuQuota")} type="number" defaultValue={200} />
           <Field name="tasks_max" label={t("nodes.tasksMax")} type="number" defaultValue={512} />
           <Field name="limit_nofile" label={t("nodes.nofile")} type="number" defaultValue={8192} />
-          <Field name="tmpfs_size_bytes" label={t("nodes.tmpSize")} type="number" defaultValue={1073741824} />
+          <TemporaryStoragePolicyFields />
           <Field name="network_allowlist" label={t("nodes.networkAllowlist")} />
           <PortForwardPolicyFields />
           <Field name="wireguard_ip" label={t("nodes.wgIp")} />
