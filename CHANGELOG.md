@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.17 - 2026-10-07
+
+- fix(nodes): expose native disk temporary storage policy (3e6aae9)
+
 ## v0.2.16 - 2026-10-06
 
 - fix(deps): patch source map denial of service advisory (9282024)
