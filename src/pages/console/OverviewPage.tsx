@@ -50,8 +50,47 @@ export function OverviewPage({
         ...sharedCards
       ]
     : sharedCards;
+  const totalResources = cards.map((card) => Number(card[1])).reduce((total: number, count: number) => total + count, 0);
   return (
     <div className="content-grid">
+      <section className="overview-hero">
+        <div className="overview-hero-copy">
+          <span className="eyebrow">{t("overview.pageKicker")}</span>
+          <h1>{t("overview.heroTitle")}</h1>
+          <p>{t("overview.heroCopy")}</p>
+        </div>
+        <div className="overview-hero-signal" aria-label={t("overview.systemStatus")}>
+          <span className="signal-orbit" aria-hidden="true"><i /></span>
+          <div>
+            <span>{t("overview.systemStatus")}</span>
+            <strong>{t("overview.systemHealthy")}</strong>
+            <small>{t("overview.signalDetail")}</small>
+          </div>
+        </div>
+      </section>
+      <section className="overview-intel" aria-label={t("overview.quickPulse")}>
+        <div className="intel-stat">
+          <span>{t("overview.activeResources")}</span>
+          <strong>{totalResources}</strong>
+          <small>{t("overview.activeResourcesDetail")}</small>
+        </div>
+        <div className="intel-signal">
+          <div className="intel-signal-head">
+            <span>{t("overview.networkSignal")}</span>
+            <strong>{t("overview.signalStable")}</strong>
+          </div>
+          <div className="signal-bars" aria-hidden="true">
+            {[36, 52, 44, 68, 58, 78, 64, 92, 76, 88, 70, 100].map((height, index) => (
+              <i key={index} style={{ height: `${height}%` }} />
+            ))}
+          </div>
+        </div>
+        <div className="intel-note">
+          <span>{t("overview.recentActivity")}</span>
+          <strong>{t("overview.recentActivityDetail")}</strong>
+          <small>{t("overview.recentActivityHint")}</small>
+        </div>
+      </section>
       <section className="metric-grid">
         {cards.map(([label, count, Icon]) => (
           <div className="metric" key={label}>
