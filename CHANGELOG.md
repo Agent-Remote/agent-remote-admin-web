@@ -2,6 +2,11 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.18 - 2026-10-25
+
+- fix(ci): upgrade vite past audit vulnerability (26da15b)
+- refactor(admin): elevate console visual system (6a512e8)
+
 ## v0.2.17 - 2026-10-07
 
 - fix(nodes): expose native disk temporary storage policy (3e6aae9)
