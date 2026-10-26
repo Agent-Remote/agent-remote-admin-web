@@ -28,6 +28,9 @@ describe("overview, audit, and settings pages", () => {
     expect(screen.getByText("Devices").previousElementSibling).toHaveTextContent("1");
     expect(screen.queryByText("Failed tasks")).not.toBeInTheDocument();
     expect(screen.getByText("session.created")).toBeInTheDocument();
+    expect(screen.queryByText(/99\.98%/)).not.toBeInTheDocument();
+    expect(screen.getByText("Health data unavailable")).toBeInTheDocument();
+    expect(screen.getByText("1 recorded events")).toBeInTheDocument();
 
     view.unmount();
     renderConsole(<OverviewPage {...props} failedTasks={[]} isAdmin />);
@@ -42,6 +45,32 @@ describe("overview, audit, and settings pages", () => {
     renderConsole(<AuditPage auditLogs={[audit]} />);
     expect(screen.getByText("session.created")).toBeInTheDocument();
     expect(screen.queryByText("No data.")).not.toBeInTheDocument();
+  });
+
+  it("does not claim node health from sessions and excludes terminal resources", () => {
+    const { props } = makeConsoleProps({
+      devices: [
+        {
+          id: "device-active", user_id: "user-1", name: "Mac", platform: "macos", cli_version: "0.0.5",
+          status: "active", last_seen_at: null, created_at: "2026-01-01T00:00:00Z"
+        },
+        {
+          id: "device-revoked", user_id: "user-1", name: "Old Mac", platform: "macos", cli_version: "0.0.4",
+          status: "revoked", last_seen_at: null, created_at: "2025-01-01T00:00:00Z"
+        }
+      ],
+      syncSessions: [{
+        id: "sync-1", user_id: "user-1", workspace_id: "workspace-1", node_id: null,
+        local_path: "/tmp/project", remote_path: "/workspace/project", status: "active",
+        conflict_status: "clean", sync_mode: "two-way-resolved", sync_git: true, exclude: [],
+        mutagen_session_id: null, remote_endpoint: null, prepare_task_id: null,
+        created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z"
+      }]
+    });
+    renderConsole(<OverviewPage {...props} failedTasks={[]} isAdmin={false} />);
+    expect(screen.getByText("Health data unavailable")).toBeInTheDocument();
+    expect(screen.queryByText(/Healthy nodes · 0\/0/)).not.toBeInTheDocument();
+    expect(screen.getByText("2 active of 3 observed resources")).toBeInTheDocument();
   });
 
   it("updates profile and persists the selected locale", async () => {

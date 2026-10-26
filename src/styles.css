@@ -2142,6 +2142,14 @@ textarea:focus {
 .signal-bars i:nth-child(2n) { animation-delay: 80ms; }
 .signal-bars i:nth-child(3n) { animation-delay: 150ms; }
 
+.signal-empty {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
 @keyframes bars-in {
   from { opacity: 0; transform: scaleY(0); }
   to { opacity: 0.76; transform: scaleY(1); }

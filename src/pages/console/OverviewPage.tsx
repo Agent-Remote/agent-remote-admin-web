@@ -21,6 +21,31 @@ import {
   TaskRow
 } from "./ResourceDetails";
 import type { ConsolePageProps } from "./types";
+import { formatDate } from "../../utils/format";
+
+const healthyNodeStatuses = new Set(["active", "healthy", "ready", "online", "connected"]);
+const liveResourceStatuses = new Set([
+  "active",
+  "creating",
+  "connected",
+  "degraded",
+  "queued",
+  "ready",
+  "running",
+  "starting",
+  "watching"
+]);
+
+function isLiveStatus(status: string) {
+  return liveResourceStatuses.has(status.toLowerCase());
+}
+
+function nodeIsHealthy(node: ConsolePageProps["nodes"][number], now: number) {
+  if (!healthyNodeStatuses.has(node.status.toLowerCase())) return false;
+  if (!node.last_heartbeat_at) return false;
+  const heartbeat = Date.parse(node.last_heartbeat_at);
+  return Number.isFinite(heartbeat) && now - heartbeat <= 5 * 60 * 1000;
+}
 export function OverviewPage({
   users,
   devices,
@@ -34,7 +59,7 @@ export function OverviewPage({
   auditLogs,
   isAdmin
 }: ConsolePageProps & { failedTasks: NodeTask[]; isAdmin: boolean }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const sharedCards = [
     [t("nav.devices"), devices.length, Laptop],
     [t("nav.accounts"), accounts.length, KeyRound],
@@ -51,6 +76,42 @@ export function OverviewPage({
       ]
     : sharedCards;
   const totalResources = cards.map((card) => Number(card[1])).reduce((total: number, count: number) => total + count, 0);
+  const activeResources = [
+    devices.filter((item) => item.status.toLowerCase() === "active").length,
+    accounts.filter((item) => item.status.toLowerCase() === "active").length,
+    workspaces.length,
+    syncSessions.filter((item) => isLiveStatus(item.status)).length,
+    toolSessions.filter((item) => isLiveStatus(item.status)).length,
+    browserSessions.filter((item) => isLiveStatus(item.status)).length,
+    ...(isAdmin ? [users.filter((item) => item.status.toLowerCase() === "active").length] : []),
+    ...(isAdmin ? [nodes.filter((item) => isLiveStatus(item.status)).length] : [])
+  ].reduce((total, count) => total + count, 0);
+  const now = Date.now();
+  const healthyNodes = nodes.filter((node) => nodeIsHealthy(node, now)).length;
+  const unhealthyNodes = nodes.filter((node) => !nodeIsHealthy(node, now)).length;
+  const syncIssues = syncSessions.filter(
+    (session) => session.status.toLowerCase() === "failed" || session.conflict_status.toLowerCase() !== "clean"
+  ).length;
+  // A session or sync record cannot stand in for node heartbeat telemetry.
+  // Keep the health card unknown until the node endpoint has returned data.
+  const hasHealthData = nodes.length > 0;
+  const hasIssues = failedTasks.length > 0 || syncIssues > 0 || unhealthyNodes > 0;
+  const latestAudit = auditLogs.reduce<typeof auditLogs[number] | undefined>(
+    (latest, item) => (!latest || Date.parse(item.created_at) > Date.parse(latest.created_at) ? item : latest),
+    undefined
+  );
+  const nodeSignalBars = nodes.map((node) => ({
+    height: nodeIsHealthy(node, now) ? 100 : healthyNodeStatuses.has(node.status.toLowerCase()) ? 52 : 24,
+    label: node.name
+  }));
+  const healthLabel = !hasHealthData
+    ? t("overview.systemNoData")
+    : hasIssues
+      ? t("overview.systemAttention")
+      : t("overview.systemHealthy", { healthy: healthyNodes, total: nodes.length });
+  const healthDetail = !hasHealthData
+    ? t("overview.signalNoData")
+    : t("overview.signalDetail", { nodes: nodes.length, healthy: healthyNodes });
   return (
     <div className="content-grid">
       <section className="overview-hero">
@@ -63,32 +124,46 @@ export function OverviewPage({
           <span className="signal-orbit" aria-hidden="true"><i /></span>
           <div>
             <span>{t("overview.systemStatus")}</span>
-            <strong>{t("overview.systemHealthy")}</strong>
-            <small>{t("overview.signalDetail")}</small>
+            <strong>{healthLabel}</strong>
+            <small>{healthDetail}</small>
           </div>
         </div>
       </section>
       <section className="overview-intel" aria-label={t("overview.quickPulse")}>
         <div className="intel-stat">
           <span>{t("overview.activeResources")}</span>
-          <strong>{totalResources}</strong>
-          <small>{t("overview.activeResourcesDetail")}</small>
+          <strong>{activeResources}</strong>
+          <small>{t("overview.activeResourcesDetail", { active: activeResources, total: totalResources })}</small>
         </div>
         <div className="intel-signal">
           <div className="intel-signal-head">
             <span>{t("overview.networkSignal")}</span>
-            <strong>{t("overview.signalStable")}</strong>
+            <strong>
+              {nodes.length > 0
+                ? t("overview.signalNodes", { healthy: healthyNodes, total: nodes.length })
+                : t("overview.signalNoData")}
+            </strong>
           </div>
-          <div className="signal-bars" aria-hidden="true">
-            {[36, 52, 44, 68, 58, 78, 64, 92, 76, 88, 70, 100].map((height, index) => (
-              <i key={index} style={{ height: `${height}%` }} />
-            ))}
-          </div>
+          {nodeSignalBars.length > 0 ? (
+            <div className="signal-bars" aria-label={t("overview.signalBarsLabel")}>
+              {nodeSignalBars.map((bar) => (
+                <i key={bar.label} aria-label={bar.label} style={{ height: `${bar.height}%` }} />
+              ))}
+            </div>
+          ) : <div className="signal-empty">{t("overview.signalNoData")}</div>}
         </div>
         <div className="intel-note">
           <span>{t("overview.recentActivity")}</span>
-          <strong>{t("overview.recentActivityDetail")}</strong>
-          <small>{t("overview.recentActivityHint")}</small>
+          <strong>
+            {latestAudit
+              ? t("overview.recentActivityEvents", { count: auditLogs.length })
+              : t("overview.recentActivityNone")}
+          </strong>
+          <small>
+            {latestAudit
+              ? t("overview.recentActivityHint", { time: formatDate(latestAudit.created_at, locale) })
+              : t("overview.recentActivityNoData")}
+          </small>
         </div>
       </section>
       <section className="metric-grid">
