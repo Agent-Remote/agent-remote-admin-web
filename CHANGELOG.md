@@ -2,6 +2,10 @@
 
 All notable changes to this repository are recorded here.
 
+## v0.2.19 - 2026-10-26
+
+- fix: derive overview metrics from live resources (c5574de)
+
 ## v0.2.18 - 2026-10-25
 
 - fix(ci): upgrade vite past audit vulnerability (26da15b)
